@@ -13,9 +13,13 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("handler start")
 	b, _ := io.ReadAll(r.Body)
-	fmt.Println(string(b))
+	fmt.Println("DATA handler:", len(b))
 	fmt.Println("handler end")
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	err := r.Body.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func main() {
