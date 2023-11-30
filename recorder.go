@@ -5,32 +5,28 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/oklog/ulid"
 )
 
-type Middleware func(http.Handler) http.Handler
-
-type Recorder struct {
-	Sniffer Middleware
-}
-
-type newReadCloser struct {
+type readCloser struct {
 	io.Reader
 	close func() error
 }
 
-func (n newReadCloser) Close() error {
-	fmt.Println("closed")
+func (n readCloser) Close() error {
 	return n.close()
 }
 
-func HandlerFunc(next http.Handler) http.Handler {
+func (rec Recorder) HandlerFunc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("start")
-
 		var buf bytes.Buffer
 
 		reader := io.TeeReader(r.Body, &buf)
-		newreadcloser := newReadCloser{
+		newreadcloser := readCloser{
 			Reader: reader,
 			close:  r.Body.Close,
 		}
@@ -38,20 +34,51 @@ func HandlerFunc(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 
-		fmt.Println("LEN middleware:", buf.Len())
 		body, err := io.ReadAll(&buf)
 		if err != nil {
-			fmt.Println("error: ", err)
+			fmt.Fprintln(os.Stderr, err)
 			return
 		}
-		fmt.Println("DATA middleware:", len(body))
+		fmt.Println(len(body))
 
-		fmt.Println("end")
+		ulid, err := ulid.New(ulid.Timestamp(time.Now()), nil)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+
+		outPath := filepath.Join(rec.OutputDir, ulid.String())
+		err = os.WriteFile(outPath, body, 0666)
+
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 	})
 }
 
-func New() Recorder {
-	var r Recorder
-	r.Sniffer = HandlerFunc
-	return r
+type Middleware func(http.Handler) http.Handler
+
+type Recorder struct {
+	RecorderOptions
+}
+
+type RecorderOptions struct {
+	OutputDir string
+}
+
+func New(options RecorderOptions) Recorder {
+	def := RecorderOptions{
+		OutputDir: "/tmp/request-record-middleware",
+	}
+
+	if options.OutputDir == "" {
+		options.OutputDir = def.OutputDir
+	}
+
+	err := os.MkdirAll(options.OutputDir, 0777)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	res := Recorder{RecorderOptions: options}
+	return res
 }

@@ -23,9 +23,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	hoge := recorder.New()
+	hoge := recorder.New(recorder.RecorderOptions{OutputDir: "/tmp/hoge"})
 
-	http.Handle("/", hoge.Sniffer(http.HandlerFunc(handler)))
+	http.Handle("/", hoge.HandlerFunc(http.HandlerFunc(handler)))
 	err := http.ListenAndServe(":8080", nil)
 	log.Fatal(err)
 }
