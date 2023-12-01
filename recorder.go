@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/oklog/ulid"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type readCloser struct {
@@ -34,21 +35,24 @@ func (rec Recorder) HandlerFunc(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 
-		body, err := io.ReadAll(&buf)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return
-		}
-		fmt.Println(len(body))
-
 		ulid, err := ulid.New(ulid.Timestamp(time.Now()), nil)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
+		ulidStr := ulid.String()
 
-		outPath := filepath.Join(rec.OutputDir, ulid.String())
-		err = os.WriteFile(outPath, body, 0666)
+		outPathBody := filepath.Join(rec.OutputDir, ulidStr)
+		err = os.WriteFile(outPathBody, buf.Bytes(), 0666)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 
+		outPathHeader := filepath.Join(rec.OutputDir, ulidStr+".header")
+		header, err := msgpack.Marshal(r.Header)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		err = os.WriteFile(outPathHeader, header, 0666)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
