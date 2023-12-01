@@ -22,7 +22,7 @@ func (n readCloser) Close() error {
 	return n.close()
 }
 
-func (rec Recorder) HandlerFunc(next http.Handler) http.Handler {
+func (rec Recorder) recorderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var buf bytes.Buffer
 
@@ -59,6 +59,17 @@ func (rec Recorder) HandlerFunc(next http.Handler) http.Handler {
 	})
 }
 
+func (rec Recorder) hoge(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("HOGE"))
+}
+
+func (rec Recorder) HandlerFunc(next http.Handler) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/get-all", rec.hoge)
+	mux.Handle("/", rec.recorderMiddleware(next))
+	return mux
+}
+
 type Middleware func(http.Handler) http.Handler
 
 type Recorder struct {
@@ -71,7 +82,7 @@ type RecorderOptions struct {
 
 func New(options RecorderOptions) Recorder {
 	def := RecorderOptions{
-		OutputDir: "/tmp/request-record-middleware",
+		OutputDir: filepath.Join(os.TempDir(), "request-record-middleware"),
 	}
 
 	if options.OutputDir == "" {
