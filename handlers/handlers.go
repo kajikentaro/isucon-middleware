@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -27,8 +28,19 @@ func New(service services.Service, recorder recorders.Recorder) Handler {
 	return Handler{service: service, recorder: recorder}
 }
 
-func (h Handler) GetAll(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("GET_ALL"))
+func outputErr(w http.ResponseWriter, err error) {
+	message := fmt.Sprintf("%#v", err)
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(message))
+}
+
+func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
+	res, err := h.service.FetchAll()
+	if err != nil {
+		outputErr(w, err)
+		return
+	}
+	w.Write([]byte(res))
 }
 
 func (h Handler) RecorderMiddleware(next http.Handler) http.Handler {

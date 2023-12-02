@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/kajikentaro/request-record-middleware/types"
@@ -39,7 +40,7 @@ func (s Service) FetchAll() (string, error) {
 			continue
 		}
 
-		data, err := os.ReadFile(file.Name())
+		data, err := os.ReadFile(filepath.Join(s.setting.OutputDir, file.Name()))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue

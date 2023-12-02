@@ -19,7 +19,7 @@ type Recorder struct {
 
 func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/get-all", rec.handler.GetAll)
+	mux.HandleFunc("/fetch-all", rec.handler.FetchAll)
 	mux.Handle("/", rec.handler.RecorderMiddleware(next))
 	return mux
 }
