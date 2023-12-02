@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/kajikentaro/request-record-middleware/types"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Service struct {
@@ -19,11 +20,13 @@ func New(setting types.Setting) Service {
 }
 
 type RecordedResponse struct {
-	Body   []byte
-	Header []byte
+	ResBody   []byte
+	ResHeader string
+	ReqBody   []byte
+	ReqHeader string
 }
 
-func (s Service) FetchAll() (string, error) {
+func (s Service) FetchAll() ([]byte, error) {
 	fileList, err := os.ReadDir(s.setting.OutputDir)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -35,7 +38,7 @@ func (s Service) FetchAll() (string, error) {
 			continue
 		}
 		splited := strings.Split(file.Name(), ".")
-		if len(splited) < 2 {
+		if len(splited) < 3 {
 			fmt.Fprintln(os.Stderr, "file name is invalid: "+file.Name())
 			continue
 		}
@@ -46,14 +49,35 @@ func (s Service) FetchAll() (string, error) {
 			continue
 		}
 
-		if _, ok := recordedAll[splited[0]]; !ok {
+		key := splited[0]
+		if _, ok := recordedAll[key]; !ok {
 			recordedAll[splited[0]] = &RecordedResponse{}
 		}
-		if splited[1] == "body" {
-			recordedAll[splited[0]].Body = data
+		if splited[1] == "res" && splited[2] == "body" {
+			recordedAll[key].ResBody = data
 		}
-		if splited[1] == "header" {
-			recordedAll[splited[0]].Header = data
+		if splited[1] == "res" && splited[2] == "header" {
+			var header map[string][]string
+			msgpack.Unmarshal(data, &header)
+			json, err := json.Marshal(header)
+			recordedAll[key].ResHeader = string(json)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
+		}
+		if splited[1] == "req" && splited[2] == "body" {
+			recordedAll[key].ReqBody = data
+		}
+		if splited[1] == "req" && splited[2] == "header" {
+			var header map[string][]string
+			msgpack.Unmarshal(data, &header)
+			json, err := json.Marshal(header)
+			recordedAll[key].ReqHeader = string(json)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				continue
+			}
 		}
 	}
 
@@ -64,7 +88,7 @@ func (s Service) FetchAll() (string, error) {
 
 	res, err := json.Marshal(resList)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(res), nil
+	return res, nil
 }

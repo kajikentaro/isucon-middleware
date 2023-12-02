@@ -21,35 +21,63 @@ func New(setting types.Setting) Recorder {
 	return Recorder{setting: setting}
 }
 
-func (r Recorder) Middleware(header http.Header, body io.Reader) {
-	fmt.Println("recorder")
-
+func (r Recorder) Middleware(reqHeader http.Header, reqBody io.Reader, resHeader http.Header, resBody *[]byte) {
+	// generate ulid
 	ulid, err := ulid.New(ulid.Timestamp(time.Now()), nil)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
 	ulidStr := ulid.String()
 
-	outPathBody := filepath.Join(r.setting.OutputDir, ulidStr+".body")
-
-	bodyBytes, err := io.ReadAll(body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+	// save request body data
+	{
+		path := filepath.Join(r.setting.OutputDir, ulidStr+".req.body")
+		data, err := io.ReadAll(reqBody)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return
+		}
+		err = os.WriteFile(path, data, 0666)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 	}
 
-	err = os.WriteFile(outPathBody, bodyBytes, 0666)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	// save request header data
+	{
+		path := filepath.Join(r.setting.OutputDir, ulidStr+".req.header")
+		data, err := msgpack.Marshal(reqHeader)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		err = os.WriteFile(path, data, 0666)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 	}
 
-	outPathHeader := filepath.Join(r.setting.OutputDir, ulidStr+".header")
-	headerBytes, err := msgpack.Marshal(header)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	// save response body data
+	{
+		path := filepath.Join(r.setting.OutputDir, ulidStr+".res.body")
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		err = os.WriteFile(path, *resBody, 0666)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 	}
-	err = os.WriteFile(outPathHeader, headerBytes, 0666)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+
+	// save response header data
+	{
+		path := filepath.Join(r.setting.OutputDir, ulidStr+".req.header")
+		data, err := msgpack.Marshal(resHeader)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+		err = os.WriteFile(path, data, 0666)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
 	}
 }

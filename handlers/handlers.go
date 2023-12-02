@@ -17,11 +17,11 @@ type Handler struct {
 
 type readCloser struct {
 	io.Reader
-	close func() error
+	originalClose func() error
 }
 
 func (n readCloser) Close() error {
-	return n.close()
+	return n.originalClose()
 }
 
 func New(service services.Service, recorder recorders.Recorder) Handler {
@@ -43,19 +43,37 @@ func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
+type responseWriter struct {
+	original    http.ResponseWriter
+	writtenData *[]byte
+}
+
+func (r responseWriter) Header() http.Header {
+	return r.original.Header()
+}
+func (r responseWriter) Write(in []byte) (int, error) {
+	*r.writtenData = in
+	return r.original.Write(in)
+}
+func (r responseWriter) WriteHeader(statusCode int) {
+	r.original.WriteHeader(statusCode)
+}
+
 func (h Handler) RecorderMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var buf bytes.Buffer
 
 		reader := io.TeeReader(r.Body, &buf)
-		newreadcloser := readCloser{
-			Reader: reader,
-			close:  r.Body.Close,
+		sniffedReadCloser := readCloser{
+			Reader:        reader,
+			originalClose: r.Body.Close,
 		}
-		r.Body = newreadcloser
+		r.Body = sniffedReadCloser
 
-		next.ServeHTTP(w, r)
+		sniffedResponseWriter := responseWriter{original: w, writtenData: &[]byte{}}
 
-		h.recorder.Middleware(r.Header, &buf)
+		next.ServeHTTP(sniffedResponseWriter, r)
+
+		h.recorder.Middleware(r.Header, &buf, w.Header(), sniffedResponseWriter.writtenData)
 	})
 }
