@@ -9,6 +9,7 @@ import (
 	"github.com/kajikentaro/request-record-middleware/handlers"
 	"github.com/kajikentaro/request-record-middleware/recorders"
 	"github.com/kajikentaro/request-record-middleware/services"
+	"github.com/kajikentaro/request-record-middleware/storages"
 	"github.com/kajikentaro/request-record-middleware/types"
 )
 
@@ -39,8 +40,11 @@ func New(options types.Setting) Recorder {
 	}
 
 	// DI
-	ser := services.New(options)
-	rec := recorders.New(options)
+	storage := storages.New(options)
+
+	ser := services.New(storage)
+	rec := recorders.New(storage)
+
 	han := handlers.New(ser, rec)
 	return Recorder{handler: han}
 }
