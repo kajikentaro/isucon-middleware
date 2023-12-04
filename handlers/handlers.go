@@ -46,6 +46,7 @@ func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
 type responseWriter struct {
 	original    http.ResponseWriter
 	writtenData *[]byte
+	statusCode  *int
 }
 
 func (r responseWriter) Header() http.Header {
@@ -56,6 +57,7 @@ func (r responseWriter) Write(in []byte) (int, error) {
 	return r.original.Write(in)
 }
 func (r responseWriter) WriteHeader(statusCode int) {
+	*r.statusCode = statusCode
 	r.original.WriteHeader(statusCode)
 }
 
@@ -70,10 +72,11 @@ func (h Handler) RecorderMiddleware(next http.Handler) http.Handler {
 		}
 		r.Body = sniffedReadCloser
 
-		sniffedResponseWriter := responseWriter{original: w, writtenData: &[]byte{}}
+		var statusCode int
+		sniffedResponseWriter := responseWriter{original: w, writtenData: &[]byte{}, statusCode: &statusCode}
 
 		next.ServeHTTP(sniffedResponseWriter, r)
 
-		h.recorder.Middleware(r.Header, &buf, w.Header(), sniffedResponseWriter.writtenData)
+		h.recorder.Middleware(r.Header, &buf, w.Header(), sniffedResponseWriter.writtenData, *sniffedResponseWriter.statusCode)
 	})
 }

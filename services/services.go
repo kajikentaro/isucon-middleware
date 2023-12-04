@@ -22,17 +22,12 @@ type RecordedResponse struct {
 }
 
 func (s Service) FetchAll() ([]byte, error) {
-	dataMap, err := s.storage.FetchAll()
+	saved, err := s.storage.FetchAll()
 	if err != nil {
 		return nil, err
 	}
 
-	dataList := []storages.SaveData{}
-	for _, val := range dataMap {
-		dataList = append(dataList, *val)
-	}
-
-	res, err := json.Marshal(dataList)
+	res, err := json.Marshal(saved)
 	if err != nil {
 		return nil, err
 	}
