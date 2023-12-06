@@ -1,4 +1,4 @@
-package services_endpoint
+package services
 
 import (
 	"github.com/kajikentaro/request-record-middleware/storages"

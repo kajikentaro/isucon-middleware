@@ -15,11 +15,17 @@ type Storage struct {
 	models.Setting
 }
 
+type RequestOthers struct {
+	Url    string
+	Header map[string][]string
+	Method string
+}
+
 type RecordedDataInput struct {
 	ResBody    []byte
 	ResHeader  map[string][]string
 	ReqBody    []byte
-	ReqHeader  map[string][]string
+	ReqOthers  RequestOthers
 	StatusCode int
 }
 
@@ -28,7 +34,7 @@ type RecordedDisplayableOutput struct {
 	ResBody   string
 	ResHeader map[string][]string
 	ReqBody   string
-	ReqHeader map[string][]string
+	ReqOthers RequestOthers
 }
 
 type Meta struct {
@@ -43,11 +49,19 @@ type RecordedByteOutput struct {
 	ReqBody []byte
 }
 
+type RecordedDetailOutput struct {
+	ResBody   []byte
+	ReqBody   []byte
+	ResHeader map[string][]string
+	ReqOthers RequestOthers
+	Meta
+}
+
 func New(setting models.Setting) Storage {
 	return Storage{Setting: setting}
 }
 
-func isText(header map[string][]string) bool {
+func IsText(header map[string][]string) bool {
 	contentType, ok := header["Content-Type"]
 	if !ok {
 		return false
@@ -55,7 +69,7 @@ func isText(header map[string][]string) bool {
 	if len(contentType) >= 2 || len(contentType) <= 0 {
 		return false
 	}
-	contentTypeText := []string{"text/plain", "text/csv", "text/html", "text/css", "text/javascript", "application/json"}
+	contentTypeText := []string{"text/plain", "text/csv", "text/html", "text/css", "text/javascript", "application/json", "application/x-www-form-urlencoded"}
 	for _, c := range contentTypeText {
 		if contentType[0] == c {
 			return true
@@ -83,7 +97,7 @@ func (s Storage) Save(data RecordedDataInput) error {
 		if err != nil {
 			return err
 		}
-		meta := Meta{StatusCode: data.StatusCode, IsReqText: isText(data.ReqHeader), IsResText: isText(data.ResHeader), Ulid: ulidStr}
+		meta := Meta{StatusCode: data.StatusCode, IsReqText: IsText(data.ReqOthers.Header), IsResText: IsText(data.ResHeader), Ulid: ulidStr}
 		data, err := msgpack.Marshal(meta)
 		if err != nil {
 			return err
@@ -120,8 +134,8 @@ func (s Storage) Save(data RecordedDataInput) error {
 
 	// save request header data
 	{
-		path := filepath.Join(s.OutputDir, ulidStr+".req.header")
-		data, err := msgpack.Marshal(data.ReqHeader)
+		path := filepath.Join(s.OutputDir, ulidStr+".req.others")
+		data, err := msgpack.Marshal(data.ReqOthers)
 		if err != nil {
 			return err
 		}
@@ -189,12 +203,12 @@ func (s Storage) FetchAll() ([]RecordedDisplayableOutput, error) {
 	for _, meta := range metaList {
 		saveData := RecordedDisplayableOutput{Meta: meta}
 		{
-			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".req.header"))
+			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".req.others"))
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				continue
 			}
-			msgpack.Unmarshal(data, &saveData.ReqHeader)
+			msgpack.Unmarshal(data, &saveData.ReqOthers)
 		}
 		{
 			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".res.header"))
@@ -243,6 +257,61 @@ func (s Storage) Fetch(ulid string) (RecordedByteOutput, error) {
 			return RecordedByteOutput{}, err
 		}
 		res.ResBody = data
+	}
+
+	return res, nil
+}
+
+func (s Storage) FetchDetail(ulid string) (RecordedDetailOutput, error) {
+	res := RecordedDetailOutput{}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".meta"))
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+		err = msgpack.Unmarshal(data, &res.Meta)
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+	}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.body"))
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+		res.ReqBody = data
+	}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.body"))
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+		res.ResBody = data
+	}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.others"))
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+		err = msgpack.Unmarshal(data, &res.ReqOthers)
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+	}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.header"))
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
+		err = msgpack.Unmarshal(data, &res.ResHeader)
+		if err != nil {
+			return RecordedDetailOutput{}, err
+		}
 	}
 
 	return res, nil

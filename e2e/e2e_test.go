@@ -116,12 +116,17 @@ func TestFetchAll(t *testing.T) {
 		ResBody:   "",
 		ResHeader: map[string][]string{},
 		ReqBody:   "Hello World",
-		ReqHeader: map[string][]string{
-			"Accept-Encoding": {"gzip"},
-			"Content-Length":  {"11"},
-			"Content-Type":    {"text/plain"},
-			"User-Agent":      {"Go-http-client/1.1"},
-		}}}
+		ReqOthers: storages.RequestOthers{
+			Url: "/",
+			Header: map[string][]string{
+				"Accept-Encoding": {"gzip"},
+				"Content-Length":  {"11"},
+				"Content-Type":    {"text/plain"},
+				"User-Agent":      {"Go-http-client/1.1"},
+			},
+			Method: "POST",
+		},
+	}}
 
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatal("response is not expected")

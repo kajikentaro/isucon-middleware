@@ -15,6 +15,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	b, _ := io.ReadAll(r.Body)
 	fmt.Println("handler:", len(b))
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	w.Header().Set("Content-Type", "text/plain")
+
 	err := r.Body.Close()
 	if err != nil {
 		log.Fatal(err)
