@@ -1,4 +1,4 @@
-package recorders
+package services_recorder
 
 import (
 	"fmt"
@@ -9,15 +9,15 @@ import (
 	"github.com/kajikentaro/request-record-middleware/storages"
 )
 
-type Recorder struct {
+type Service struct {
 	storage storages.Storage
 }
 
-func New(storage storages.Storage) Recorder {
-	return Recorder{storage: storage}
+func New(storage storages.Storage) Service {
+	return Service{storage: storage}
 }
 
-func (r Recorder) Middleware(reqHeader http.Header, reqBody io.Reader, resHeader http.Header, resBody *[]byte, statusCode int) {
+func (r Service) Middleware(reqHeader http.Header, reqBody io.Reader, resHeader http.Header, resBody *[]byte, statusCode int) {
 	ReqBodyData, err := io.ReadAll(reqBody)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

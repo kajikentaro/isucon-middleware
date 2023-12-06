@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 
 	"github.com/kajikentaro/request-record-middleware/handlers"
-	"github.com/kajikentaro/request-record-middleware/recorders"
-	"github.com/kajikentaro/request-record-middleware/services"
+	"github.com/kajikentaro/request-record-middleware/models"
+	"github.com/kajikentaro/request-record-middleware/services_endpoint"
+	"github.com/kajikentaro/request-record-middleware/services_recorder"
 	"github.com/kajikentaro/request-record-middleware/storages"
-	"github.com/kajikentaro/request-record-middleware/types"
 )
 
 type Recorder struct {
@@ -25,8 +25,8 @@ func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	return mux
 }
 
-func New(options types.Setting) Recorder {
-	def := types.Setting{
+func New(options models.Setting) Recorder {
+	def := models.Setting{
 		OutputDir: filepath.Join(os.TempDir(), "request-record-middleware"),
 	}
 
@@ -42,8 +42,8 @@ func New(options types.Setting) Recorder {
 	// DI
 	storage := storages.New(options)
 
-	ser := services.New(storage)
-	rec := recorders.New(storage)
+	ser := services_endpoint.New(storage)
+	rec := services_recorder.New(storage)
 
 	han := handlers.New(ser, rec)
 	return Recorder{handler: han}

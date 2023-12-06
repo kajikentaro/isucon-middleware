@@ -14,13 +14,6 @@ func New(storage storages.Storage) Service {
 	return Service{storage: storage}
 }
 
-type RecordedResponse struct {
-	ResBody   []byte
-	ResHeader string
-	ReqBody   []byte
-	ReqHeader string
-}
-
 func (s Service) FetchAll() ([]byte, error) {
 	saved, err := s.storage.FetchAll()
 	if err != nil {

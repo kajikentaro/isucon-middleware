@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	recorder "github.com/kajikentaro/request-record-middleware"
-	"github.com/kajikentaro/request-record-middleware/types"
+	"github.com/kajikentaro/request-record-middleware/models"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	rec := recorder.New(types.Setting{OutputDir: "/tmp/hoge"})
+	rec := recorder.New(models.Setting{OutputDir: "/tmp/hoge"})
 
 	http.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
 	err := http.ListenAndServe(":8080", nil)

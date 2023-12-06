@@ -6,13 +6,13 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/kajikentaro/request-record-middleware/recorders"
-	"github.com/kajikentaro/request-record-middleware/services"
+	"github.com/kajikentaro/request-record-middleware/services_endpoint"
+	"github.com/kajikentaro/request-record-middleware/services_recorder"
 )
 
 type Handler struct {
-	service  services.Service
-	recorder recorders.Recorder
+	service  services_endpoint.Service
+	recorder services_recorder.Service
 }
 
 type readCloser struct {
@@ -24,7 +24,7 @@ func (n readCloser) Close() error {
 	return n.originalClose()
 }
 
-func New(service services.Service, recorder recorders.Recorder) Handler {
+func New(service services_endpoint.Service, recorder services_recorder.Service) Handler {
 	return Handler{service: service, recorder: recorder}
 }
 

@@ -14,7 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	routers "github.com/kajikentaro/request-record-middleware"
-	"github.com/kajikentaro/request-record-middleware/types"
+	"github.com/kajikentaro/request-record-middleware/models"
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
@@ -44,7 +44,7 @@ func TestE2E(t *testing.T) {
 	fmt.Println("test dir:", OUTPUT_DIR)
 
 	// prepare server
-	rec := routers.New(types.Setting{OutputDir: OUTPUT_DIR})
+	rec := routers.New(models.Setting{OutputDir: OUTPUT_DIR})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
 	srv := &http.Server{Addr: ":8888", Handler: mux}

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kajikentaro/request-record-middleware/types"
+	"github.com/kajikentaro/request-record-middleware/models"
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
@@ -32,7 +32,7 @@ func TestSave(t *testing.T) {
 	}
 
 	// prepare storage
-	setting := types.Setting{OutputDir: OUTPUT_DIR}
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	// test start
@@ -44,7 +44,7 @@ func TestSave(t *testing.T) {
 
 func TestFetchAllMetadata(t *testing.T) {
 	// prepare storage
-	setting := types.Setting{OutputDir: OUTPUT_DIR}
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	// test start
@@ -63,7 +63,7 @@ func TestFetchAllMetadata(t *testing.T) {
 
 func TestFetchAll(t *testing.T) {
 	// prepare storage
-	setting := types.Setting{OutputDir: OUTPUT_DIR}
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	// test start

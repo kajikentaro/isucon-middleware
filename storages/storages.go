@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/kajikentaro/request-record-middleware/types"
+	"github.com/kajikentaro/request-record-middleware/models"
 	"github.com/oklog/ulid"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Storage struct {
-	types.Setting
+	models.Setting
 }
 
 type SaveDataInput struct {
@@ -38,7 +38,7 @@ type Meta struct {
 	Ulid       string
 }
 
-func New(setting types.Setting) Storage {
+func New(setting models.Setting) Storage {
 	return Storage{Setting: setting}
 }
 
