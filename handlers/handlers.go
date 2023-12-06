@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/kajikentaro/request-record-middleware/services_endpoint"
 	"github.com/kajikentaro/request-record-middleware/services_recorder"
@@ -35,12 +37,38 @@ func outputErr(w http.ResponseWriter, err error) {
 }
 
 func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
-	res, err := h.service.FetchAll()
+	saved, err := h.service.FetchAll()
 	if err != nil {
 		outputErr(w, err)
 		return
 	}
-	w.Write([]byte(res))
+
+	res, err := json.Marshal(saved)
+	if err != nil {
+		outputErr(w, err)
+	}
+	w.Write(res)
+}
+
+func (h Handler) Fetch(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		return
+	}
+	ulid := parts[2]
+
+	saved, err := h.service.Fetch(ulid)
+	if err != nil {
+		outputErr(w, err)
+		return
+	}
+
+	res, err := json.Marshal(saved)
+	if err != nil {
+		outputErr(w, err)
+	}
+	w.Write(res)
 }
 
 type responseWriter struct {

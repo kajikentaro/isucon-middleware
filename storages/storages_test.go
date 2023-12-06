@@ -23,7 +23,7 @@ func TestSave(t *testing.T) {
 	header := map[string][]string{
 		"Content-Type": {"text/plain"},
 	}
-	saveData := SaveDataInput{
+	saveData := RecordedDataInput{
 		ReqBody:    []byte("Test Request Body"),
 		ReqHeader:  header,
 		ResBody:    []byte("Test Response Body"),
@@ -74,7 +74,7 @@ func TestFetchAll(t *testing.T) {
 	// ignore ulid
 	actual[0].Ulid = ""
 
-	expected := []SaveDataOutput{{Meta: Meta{IsReqText: true, IsResText: false, StatusCode: 200, Ulid: ""}, ResBody: "", ResHeader: map[string][]string{}, ReqBody: "Test Request Body", ReqHeader: map[string][]string{"Content-Type": {"text/plain"}}}}
+	expected := []RecordedDisplayableOutput{{Meta: Meta{IsReqText: true, IsResText: false, StatusCode: 200, Ulid: ""}, ResBody: "", ResHeader: map[string][]string{}, ReqBody: "Test Request Body", ReqHeader: map[string][]string{"Content-Type": {"text/plain"}}}}
 	if !reflect.DeepEqual(expected, actual) {
 		t.Fatalf("expected: \t\n%#v, \nactual: \t\n%#v", expected, actual)
 	}

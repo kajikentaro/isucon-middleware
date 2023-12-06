@@ -15,7 +15,7 @@ type Storage struct {
 	models.Setting
 }
 
-type SaveDataInput struct {
+type RecordedDataInput struct {
 	ResBody    []byte
 	ResHeader  map[string][]string
 	ReqBody    []byte
@@ -23,7 +23,7 @@ type SaveDataInput struct {
 	StatusCode int
 }
 
-type SaveDataOutput struct {
+type RecordedDisplayableOutput struct {
 	Meta
 	ResBody   string
 	ResHeader map[string][]string
@@ -36,6 +36,11 @@ type Meta struct {
 	IsResText  bool
 	StatusCode int
 	Ulid       string
+}
+
+type RecordedByteOutput struct {
+	ResBody []byte
+	ReqBody []byte
 }
 
 func New(setting models.Setting) Storage {
@@ -59,7 +64,7 @@ func isText(header map[string][]string) bool {
 	return false
 }
 
-func (s Storage) Save(data SaveDataInput) error {
+func (s Storage) Save(data RecordedDataInput) error {
 	err := os.MkdirAll(s.OutputDir, 0777)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -174,15 +179,15 @@ func (s Storage) fetchAllMetaData() ([]Meta, error) {
 	return res, nil
 }
 
-func (s Storage) FetchAll() ([]SaveDataOutput, error) {
+func (s Storage) FetchAll() ([]RecordedDisplayableOutput, error) {
 	metaList, err := s.fetchAllMetaData()
 	if err != nil {
 		return nil, err
 	}
 
-	res := []SaveDataOutput{}
+	res := []RecordedDisplayableOutput{}
 	for _, meta := range metaList {
-		saveData := SaveDataOutput{Meta: meta}
+		saveData := RecordedDisplayableOutput{Meta: meta}
 		{
 			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".req.header"))
 			if err != nil {
@@ -216,6 +221,28 @@ func (s Storage) FetchAll() ([]SaveDataOutput, error) {
 			saveData.ResBody = string(data)
 		}
 		res = append(res, saveData)
+	}
+
+	return res, nil
+}
+
+func (s Storage) Fetch(ulid string) (RecordedByteOutput, error) {
+	res := RecordedByteOutput{}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.body"))
+		if err != nil {
+			return RecordedByteOutput{}, err
+		}
+		res.ReqBody = data
+	}
+
+	{
+		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.body"))
+		if err != nil {
+			return RecordedByteOutput{}, err
+		}
+		res.ResBody = data
 	}
 
 	return res, nil

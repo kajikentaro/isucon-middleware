@@ -1,8 +1,6 @@
-package services
+package services_endpoint
 
 import (
-	"encoding/json"
-
 	"github.com/kajikentaro/request-record-middleware/storages"
 )
 
@@ -14,15 +12,20 @@ func New(storage storages.Storage) Service {
 	return Service{storage: storage}
 }
 
-func (s Service) FetchAll() ([]byte, error) {
+func (s Service) FetchAll() ([]storages.RecordedDisplayableOutput, error) {
 	saved, err := s.storage.FetchAll()
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := json.Marshal(saved)
+	return saved, nil
+}
+
+func (s Service) Fetch(ulid string) (storages.RecordedByteOutput, error) {
+	saved, err := s.storage.Fetch(ulid)
 	if err != nil {
-		return nil, err
+		return storages.RecordedByteOutput{}, err
 	}
-	return res, nil
+
+	return saved, nil
 }
