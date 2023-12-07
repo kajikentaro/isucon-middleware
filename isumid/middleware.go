@@ -1,4 +1,4 @@
-package routers
+package isumid
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kajikentaro/request-record-middleware/middleware/handlers"
-	"github.com/kajikentaro/request-record-middleware/middleware/middlewares"
-	"github.com/kajikentaro/request-record-middleware/middleware/models"
-	"github.com/kajikentaro/request-record-middleware/middleware/services"
-	"github.com/kajikentaro/request-record-middleware/middleware/storages"
+	"github.com/kajikentaro/isucon-middleware/isumid/handlers"
+	"github.com/kajikentaro/isucon-middleware/isumid/middlewares"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/services"
+	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
 type Recorder struct {
