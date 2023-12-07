@@ -7,8 +7,9 @@ import (
 	"log"
 	"net/http"
 
-	recorder "github.com/kajikentaro/request-record-middleware"
-	"github.com/kajikentaro/request-record-middleware/models"
+	"github.com/kajikentaro/isucon-middleware/isumid"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/labstack/echo/v4"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +25,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	rec := recorder.New(models.Setting{OutputDir: "/tmp/hoge"})
+	echo.New()
+	rec := isumid.New(models.Setting{OutputDir: "/tmp/hoge"})
 
 	http.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
 	err := http.ListenAndServe(":8080", nil)

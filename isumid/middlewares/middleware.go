@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/kajikentaro/request-record-middleware/storages"
+	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
 type Middleware struct {

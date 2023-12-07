@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	routers "github.com/kajikentaro/request-record-middleware"
-	"github.com/kajikentaro/request-record-middleware/models"
-	"github.com/kajikentaro/request-record-middleware/storages"
+	routers "github.com/kajikentaro/isucon-middleware/isumid"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())

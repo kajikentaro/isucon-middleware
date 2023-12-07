@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/kajikentaro/request-record-middleware/storages"
+	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
 type Service struct {
