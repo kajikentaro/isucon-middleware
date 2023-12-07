@@ -1,4 +1,4 @@
-module github.com/kajikentaro/request-record-middleware
+module github.com/kajikentaro/request-record-middleware/middleware
 
 go 1.21.0
 
