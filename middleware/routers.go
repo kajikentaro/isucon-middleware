@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kajikentaro/request-record-middleware/handlers"
-	"github.com/kajikentaro/request-record-middleware/middlewares"
-	"github.com/kajikentaro/request-record-middleware/models"
-	"github.com/kajikentaro/request-record-middleware/services"
-	"github.com/kajikentaro/request-record-middleware/storages"
+	"github.com/kajikentaro/request-record-middleware/middleware/handlers"
+	"github.com/kajikentaro/request-record-middleware/middleware/middlewares"
+	"github.com/kajikentaro/request-record-middleware/middleware/models"
+	"github.com/kajikentaro/request-record-middleware/middleware/services"
+	"github.com/kajikentaro/request-record-middleware/middleware/storages"
 )
 
 type Recorder struct {

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kajikentaro/request-record-middleware/models"
+	"github.com/kajikentaro/request-record-middleware/middleware/models"
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())

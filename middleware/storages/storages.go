@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/kajikentaro/request-record-middleware/models"
+	"github.com/kajikentaro/request-record-middleware/middleware/models"
 	"github.com/oklog/ulid"
 	"github.com/vmihailenco/msgpack/v5"
 )

@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	recorder "github.com/kajikentaro/request-record-middleware"
-	"github.com/kajikentaro/request-record-middleware/models"
+	recorder "github.com/kajikentaro/request-record-middleware/middleware"
+	"github.com/kajikentaro/request-record-middleware/middleware/models"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {

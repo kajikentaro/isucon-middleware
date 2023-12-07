@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kajikentaro/request-record-middleware/services"
+	"github.com/kajikentaro/request-record-middleware/middleware/services"
 )
 
 type Handler struct {
