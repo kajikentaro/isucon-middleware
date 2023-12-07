@@ -23,6 +23,8 @@ func outputErr(w http.ResponseWriter, err error, statusCode int) {
 }
 
 func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	saved, err := h.service.FetchAll()
 	if err != nil {
 		outputErr(w, err, http.StatusInternalServerError)
