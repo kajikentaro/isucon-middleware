@@ -99,7 +99,8 @@ func (s Middleware) Executer(next http.Handler) http.Handler {
 
 		actualResBody := responseWriter.writtenData.Bytes()
 		isSameResBody := bytes.Equal(actualResBody, saved.ResBody)
-		isSameResHeader := reflect.DeepEqual(responseWriter.Header(), saved.ResHeader)
+		var actualHeader map[string][]string = responseWriter.Header() // DeepEqual fail unless convert map[string][]string
+		isSameResHeader := reflect.DeepEqual(actualHeader, saved.ResHeader)
 		isSameStatusCode := statusCode == saved.StatusCode
 		res := struct {
 			IsSameResBody    bool
