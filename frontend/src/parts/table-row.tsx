@@ -1,5 +1,6 @@
 "use client";
 import { FetchResponse } from "@/types";
+import { getExecuteUrl } from "@/utils/getUrl";
 import { MouseEvent } from "react";
 
 interface Props {
@@ -31,7 +32,11 @@ export default function TableRow(props: Props) {
       </td>
       <td className="px-4 py-2 whitespace-nowrap">{item.ResBody}</td>
       <td className="px-4 py-2 whitespace-nowrap">
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto">
+        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto" onClick={async ()=>{
+          const res = await fetch(getExecuteUrl(item.Ulid))
+          const json = await res.json();
+          console.log(json)
+        }}>
           <svg
             className="h-4 w-4"
             fill="none"
@@ -40,9 +45,9 @@ export default function TableRow(props: Props) {
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
               d="M9 5l8 8-8 8"
             />
           </svg>

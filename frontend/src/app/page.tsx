@@ -80,7 +80,7 @@ export default function Home() {
         </thead>
         <tbody>
           {data.map((item, index) => (
-            <TableRow item={item} isSelected={selected[index]} handleCheckboxClick={(e: MouseEvent) => handleCheckboxClick(e, index)} />
+            <TableRow item={item} isSelected={selected[index]} handleCheckboxClick={(e: MouseEvent) => handleCheckboxClick(e, index)} key={item.Ulid} />
           ))}
         </tbody>
       </table>
