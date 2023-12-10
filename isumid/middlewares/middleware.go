@@ -33,7 +33,7 @@ func (s Middleware) Recorder(next http.Handler) http.Handler {
 		r.Body = sniffedReadCloser
 
 		// prepare to read response body
-		var statusCode int
+		statusCode := 200
 		sniffedResponseWriter := responseWriterSniffer{original: w, writtenData: &[]byte{}, statusCode: &statusCode}
 
 		// go to original handler
@@ -91,7 +91,7 @@ func (s Middleware) Executer(next http.Handler) http.Handler {
 		}
 
 		// prepare to read response body
-		var statusCode int
+		statusCode := 200
 		responseWriter := responseWriterOwn{header: &http.Header{}, writtenData: &bytes.Buffer{}, statusCode: &statusCode}
 
 		// go to original handler
@@ -123,6 +123,7 @@ func (s Middleware) Executer(next http.Handler) http.Handler {
 			http.Error(w, fmt.Sprintf("failed to stringify json: %#v", err), http.StatusBadRequest)
 			return
 		}
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Write(json)
 	})
 }

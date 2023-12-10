@@ -39,6 +39,8 @@ func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) Fetch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
 		http.Error(w, "Invalid URL: should be /fetch/[ulid]", http.StatusBadRequest)
