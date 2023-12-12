@@ -1,5 +1,5 @@
 
-export interface FetchResponse {
+export interface RecordedTransaction {
   IsReqText: boolean;
   IsResText: boolean;
   StatusCode: number;
