@@ -1,7 +1,8 @@
 "use client";
 import { RecordedTransaction } from "@/types";
-import { getExecuteUrl } from "@/utils/getUrl";
 import { MouseEvent } from "react";
+import { useOnExecute } from "@/hooks/use-queue";
+import ProgressIcon from "./progress-icon";
 
 interface Props {
   item: RecordedTransaction;
@@ -12,6 +13,8 @@ interface Props {
 export default function TableRow(props: Props) {
   const { handleCheckboxClick, isSelected, item } = props;
 
+  const onExecute = useOnExecute(item.Ulid);
+
   return (
     <tr className="border-b hover:bg-gray-100">
       <td
@@ -19,8 +22,9 @@ export default function TableRow(props: Props) {
         onClick={(e) => handleCheckboxClick(e)}
       >
         <div
-          className={`w-3 h-3 border  rounded m-auto block ${isSelected ? "bg-blue-500 border-blue-500" : " border-gray-500"
-            }`}
+          className={`w-3 h-3 border  rounded m-auto block ${
+            isSelected ? "bg-blue-500 border-blue-500" : " border-gray-500"
+          }`}
         />
       </td>
       <td className="px-4 py-2 whitespace-nowrap">{item.ReqOthers.Method}</td>
@@ -31,11 +35,13 @@ export default function TableRow(props: Props) {
       </td>
       <td className="px-4 py-2 whitespace-nowrap">{item.ResBody}</td>
       <td className="px-4 py-2 whitespace-nowrap">
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto" onClick={async () => {
-          const res = await fetch(getExecuteUrl(item.Ulid))
-          const json = await res.json();
-          console.log(json)
-        }}>
+        <ProgressIcon ulid={item.Ulid} />
+      </td>
+      <td className="px-4 py-2 whitespace-nowrap">
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto"
+          onClick={onExecute}
+        >
           <svg
             className="h-4 w-4"
             fill="none"

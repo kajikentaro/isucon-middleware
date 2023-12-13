@@ -1,19 +1,20 @@
 "use client";
 import TableRow from "@/components/table-row";
 import {
+  ExecutionProgressMap,
+  setExecutionProgressAll,
+} from "@/store/executionProgressMap";
+import { useAppDispatch, useAppSelector } from "@/store/main";
+import {
   selectRecordedTransactions,
   setRecordedTransactions,
-  useAppDispatch,
-  useAppSelector,
-} from "@/store";
+} from "@/store/recordedTransactions";
 import { RecordedTransaction } from "@/types";
 import { MouseEvent, useEffect, useState } from "react";
 
 export default function Main() {
   const dispatch = useAppDispatch();
   const recordedTransactions = useAppSelector(selectRecordedTransactions);
-
-  console.log(recordedTransactions);
 
   const [selected, setSelected] = useState<boolean[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
@@ -51,6 +52,13 @@ export default function Main() {
     const response = await fetch("http://localhost:8080/fetch-all", {});
     const json: RecordedTransaction[] = await response.json();
     dispatch(setRecordedTransactions(json));
+
+    const progressMap: ExecutionProgressMap = {};
+    for (const progress of json) {
+      progressMap[progress.Ulid] = "init";
+    }
+    dispatch(setExecutionProgressAll(progressMap));
+
     setSelected(Array(json.length).fill(false));
   };
 
@@ -81,6 +89,7 @@ export default function Main() {
             <th className="px-4 py-2 w-1/2">ReqBody</th>
             <th className="px-4 py-2">Status Code</th>
             <th className="px-4 py-2 w-1/2">ResBody</th>
+            <th>Execution Result</th>
             <th className="px-4 py-2 w-1/2">Execute</th>
           </tr>
         </thead>
