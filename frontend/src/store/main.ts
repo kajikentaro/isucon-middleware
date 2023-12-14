@@ -3,12 +3,14 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { executionProgress } from "./execution-progress";
 import { recordedTransaction } from "./recorded-transaction";
 import { executionResponse } from "./execution-response";
+import { comparisonPopup } from "./comparison-popup";
 
 const store = configureStore({
   reducer: {
     executionProgress,
     recordedTransaction,
     executionResponse,
+    comparisonPopup,
   },
 });
 

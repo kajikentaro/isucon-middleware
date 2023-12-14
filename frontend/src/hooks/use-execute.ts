@@ -4,14 +4,13 @@ import {
 } from "@/store/execution-progress";
 import { setExecutionResponse } from "@/store/execution-response";
 import { useAppDispatch, useAppSelector } from "@/store/main";
-import { selectRecordedTransactionList } from "@/store/recorded-transaction";
+import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { ExecutionResponse } from "@/types";
 import { getExecuteUrl } from "@/utils/get-url";
 
 export function useOnExecute(ulid: string) {
   const dispatch = useAppDispatch();
-  const recordedTransactions = useAppSelector(selectRecordedTransactionList);
-  const target = recordedTransactions.find((v) => v.Ulid === ulid);
+  const target = useAppSelector(selectRecordedTransaction(ulid));
   if (!target) {
     throw new Error(`ulid (${ulid}) is not found`);
   }

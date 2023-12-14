@@ -2,11 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ExecutionResponse } from "../types";
 import { State } from "./main";
 
-export type Status = "loading" | "fail" | "success" | "init";
-
-export type ExecutionResponseMap = Record<string, ExecutionResponse>;
-
-const initialState: ExecutionResponseMap = {};
+const initialState: Record<string, ExecutionResponse> = {};
 
 const slice = createSlice({
   name: "executionResponse",

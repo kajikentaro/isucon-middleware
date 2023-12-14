@@ -1,22 +1,30 @@
 "use client";
-import { RecordedTransaction } from "@/types";
 import { MouseEvent } from "react";
 import { useOnExecute } from "@/hooks/use-execute";
 import ProgressIcon from "./progress-icon";
+import { useAppDispatch, useAppSelector } from "@/store/main";
+import { selectRecordedTransaction } from "@/store/recorded-transaction";
+import { showComparisonPopup } from "@/store/comparison-popup";
 
 interface Props {
-  item: RecordedTransaction;
+  ulid: string;
   handleCheckboxClick: (event: MouseEvent) => void;
   isSelected: boolean;
 }
 
 export default function TableRow(props: Props) {
-  const { handleCheckboxClick, isSelected, item } = props;
+  const { handleCheckboxClick, isSelected, ulid } = props;
 
+  const item = useAppSelector(selectRecordedTransaction(ulid));
   const onExecute = useOnExecute(item.Ulid);
+  const dispatch = useAppDispatch();
+
+  const onClickRow = () => {
+    dispatch(showComparisonPopup(ulid));
+  };
 
   return (
-    <tr className="border-b hover:bg-gray-100">
+    <tr className="border-b hover:bg-gray-100" onClick={onClickRow}>
       <td
         className="px-4 py-2 whitespace-nowrap"
         onClick={(e) => handleCheckboxClick(e)}
@@ -40,7 +48,10 @@ export default function TableRow(props: Props) {
       <td className="px-4 py-2 whitespace-nowrap">
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto"
-          onClick={onExecute}
+          onClick={(e) => {
+            e.stopPropagation();
+            onExecute();
+          }}
         >
           <svg
             className="h-4 w-4"

@@ -14,10 +14,11 @@ export interface RecordedTransaction {
 }
 
 export interface ExecutionResponse {
-  // TODO: add is res text
   ActualResBody: string;
   ActualResHeader: { [key: string]: string[] };
   IsSameResBody: true;
   IsSameResHeader: true;
   IsSameStatusCode: true;
+  IsBodyText: boolean;
+  StatusCode: number;
 }

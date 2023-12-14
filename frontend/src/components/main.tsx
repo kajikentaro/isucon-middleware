@@ -6,7 +6,7 @@ import {
 } from "@/store/execution-progress";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import {
-  selectRecordedTransactionList,
+  selectRecordedTransactionUlids,
   setRecordedTransactionList,
 } from "@/store/recorded-transaction";
 import { RecordedTransaction } from "@/types";
@@ -14,7 +14,9 @@ import { MouseEvent, useEffect, useState } from "react";
 
 export default function Main() {
   const dispatch = useAppDispatch();
-  const recordedTransactions = useAppSelector(selectRecordedTransactionList);
+  const recordedTransactionUlids = useAppSelector(
+    selectRecordedTransactionUlids
+  );
 
   const [selected, setSelected] = useState<boolean[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
@@ -59,7 +61,7 @@ export default function Main() {
     }
     dispatch(setExecutionProgressAll(progressMap));
 
-    setSelected(Array(json.length).fill(false));
+    setSelected(Array(json.length).fill(true));
   };
 
   useEffect(() => {
@@ -94,14 +96,14 @@ export default function Main() {
           </tr>
         </thead>
         <tbody>
-          {recordedTransactions.map((item, index) => (
+          {recordedTransactionUlids.map((ulid, index) => (
             <TableRow
-              item={item}
               isSelected={selected[index]}
               handleCheckboxClick={(e: MouseEvent) =>
                 handleCheckboxClick(e, index)
               }
-              key={item.Ulid}
+              ulid={ulid}
+              key={ulid}
             />
           ))}
         </tbody>
