@@ -1,4 +1,4 @@
-import { ExecutionProgress } from "@/store/executionProgressMap";
+import { ExecutionProgress } from "@/store/execution-progress";
 import { shouldBeNever } from "@/utils/assert-never";
 import React from "react";
 import {

@@ -3,18 +3,18 @@ import TableRow from "@/components/table-row";
 import {
   ExecutionProgressMap,
   setExecutionProgressAll,
-} from "@/store/executionProgressMap";
+} from "@/store/execution-progress";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import {
-  selectRecordedTransactions,
-  setRecordedTransactions,
-} from "@/store/recordedTransactions";
+  selectRecordedTransactionList,
+  setRecordedTransactionList,
+} from "@/store/recorded-transaction";
 import { RecordedTransaction } from "@/types";
 import { MouseEvent, useEffect, useState } from "react";
 
 export default function Main() {
   const dispatch = useAppDispatch();
-  const recordedTransactions = useAppSelector(selectRecordedTransactions);
+  const recordedTransactions = useAppSelector(selectRecordedTransactionList);
 
   const [selected, setSelected] = useState<boolean[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
@@ -51,7 +51,7 @@ export default function Main() {
   const fetchData = async () => {
     const response = await fetch("http://localhost:8080/fetch-all", {});
     const json: RecordedTransaction[] = await response.json();
-    dispatch(setRecordedTransactions(json));
+    dispatch(setRecordedTransactionList(json));
 
     const progressMap: ExecutionProgressMap = {};
     for (const progress of json) {

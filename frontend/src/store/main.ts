@@ -1,12 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import { executionProgressMap } from "./executionProgressMap";
-import { recordedTransactions } from "./recordedTransactions";
+import { executionProgress } from "./execution-progress";
+import { recordedTransaction } from "./recorded-transaction";
+import { executionResponse } from "./execution-response";
 
 const store = configureStore({
   reducer: {
-    executionProgressMap,
-    recordedTransactions,
+    executionProgress,
+    recordedTransaction,
+    executionResponse,
   },
 });
 

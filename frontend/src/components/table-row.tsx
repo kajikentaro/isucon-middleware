@@ -1,7 +1,7 @@
 "use client";
 import { RecordedTransaction } from "@/types";
 import { MouseEvent } from "react";
-import { useOnExecute } from "@/hooks/use-queue";
+import { useOnExecute } from "@/hooks/use-execute";
 import ProgressIcon from "./progress-icon";
 
 interface Props {

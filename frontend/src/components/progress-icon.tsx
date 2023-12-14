@@ -6,7 +6,7 @@ import {
   AiOutlineCheckCircle,
 } from "react-icons/ai";
 import { useAppSelector } from "@/store/main";
-import { selectExecutionProgressMap } from "@/store/executionProgressMap";
+import { selectExecutionProgressMap } from "@/store/execution-progress";
 
 interface Props {
   ulid: string;
