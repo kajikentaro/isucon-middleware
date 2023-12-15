@@ -1,12 +1,12 @@
 import {
-  selectExecutionProgress,
-  setExecutionProgress,
+    selectExecutionProgress,
+    setExecutionProgress,
 } from "@/store/execution-progress";
 import { setExecutionResponse } from "@/store/execution-response";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { ExecutionResponse } from "@/types";
-import { getExecuteUrl } from "@/utils/get-url";
+import { getReproduceUrl } from "@/utils/get-url";
 
 export function useOnExecute(ulid: string) {
   const dispatch = useAppDispatch();
@@ -27,7 +27,7 @@ export function useOnExecute(ulid: string) {
       );
 
       try {
-        const res = await fetch(getExecuteUrl(ulid));
+        const res = await fetch(getReproduceUrl(ulid));
         const json = (await res.json()) as ExecutionResponse;
 
         dispatch(

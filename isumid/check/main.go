@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html"
 	"io"
 	"log"
 	"net/http"
@@ -15,8 +14,7 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	b, _ := io.ReadAll(r.Body)
 	fmt.Println("handler:", len(b))
-	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	w.Header().Set("Content-Type", "text/plain")
+	w.Write(b)
 
 	err := r.Body.Close()
 	if err != nil {

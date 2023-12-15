@@ -1,5 +1,5 @@
 const ENDPOINT_URL = "http://localhost:8080"
 
-export function getExecuteUrl(ulid: string){
-    return `${ENDPOINT_URL}/execute/${ulid}`
+export function getReproduceUrl(ulid: string){
+    return `${ENDPOINT_URL}/reproduce/${ulid}`
 }

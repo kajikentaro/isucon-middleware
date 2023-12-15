@@ -38,12 +38,12 @@ func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func (h Handler) Fetch(w http.ResponseWriter, r *http.Request) {
+func (h Handler) FetchReqBody(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
-		http.Error(w, "Invalid URL: should be /fetch/[ulid]", http.StatusBadRequest)
+		http.Error(w, "Invalid URL: should be /fetch-req-body/[ulid]", http.StatusBadRequest)
 		return
 	}
 	ulid := parts[2]

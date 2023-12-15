@@ -65,18 +65,18 @@ func (s Middleware) Recorder(next http.Handler) http.Handler {
 	})
 }
 
-func (s Middleware) Executer(next http.Handler) http.Handler {
+func (s Middleware) Reproducer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get ulid from path
 		parts := strings.Split(r.URL.Path, "/")
 		if len(parts) < 3 || parts[2] == "" {
-			http.Error(w, "invalid URL: should be /execute/[ulid]", http.StatusBadRequest)
+			http.Error(w, "invalid URL: should be /reproduce/[ulid]", http.StatusBadRequest)
 			return
 		}
 		ulid := parts[2]
 
 		// fetch recorded data
-		saved, err := s.storage.FetchDetail(ulid)
+		saved, err := s.storage.FetchForReproduce(ulid)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to read save data: %#v", err), http.StatusBadRequest)
 			return
@@ -102,20 +102,26 @@ func (s Middleware) Executer(next http.Handler) http.Handler {
 		var actualHeader map[string][]string = responseWriter.Header() // DeepEqual fail unless convert map[string][]string
 		isSameResHeader := reflect.DeepEqual(actualHeader, saved.ResHeader)
 		isSameStatusCode := statusCode == saved.StatusCode
+		isBodyText := storages.IsText(responseWriter.Header())
+
 		res := struct {
 			IsSameResBody    bool
 			IsSameResHeader  bool
 			IsSameStatusCode bool
 			ActualResHeader  http.Header
 			ActualResBody    string
+			IsBodyText       bool
+			StatusCode       int
 		}{
 			IsSameResBody:    isSameResBody,
 			IsSameResHeader:  isSameResHeader,
 			IsSameStatusCode: isSameStatusCode,
+			IsBodyText:       isBodyText,
 			ActualResHeader:  responseWriter.Header(),
+			StatusCode:       statusCode,
 		}
 
-		if storages.IsText(responseWriter.Header()) {
+		if isBodyText {
 			res.ActualResBody = string(actualResBody)
 		}
 

@@ -1,6 +1,8 @@
 package services
 
 import (
+	"net/http"
+
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
@@ -21,7 +23,21 @@ func (s Service) FetchAll() ([]storages.RecordedDisplayableOutput, error) {
 	return saved, nil
 }
 
-func (s Service) Fetch(ulid string) (storages.RecordedByteOutput, error) {
+type FetchBodyResponse struct {
+	body   []byte
+	header http.Header
+}
+
+func (s Service) FetchReqBody(ulid string) (FetchBodyResponse, error) {
+	saved, err := s.storage.FetchReqBody(ulid)
+	if err != nil {
+		return FetchBodyResponse{}, err
+	}
+
+	s.storage.
+}
+
+func (s Service) FetchReqBody(ulid string) (storages.RecordedByteOutput, error) {
 	saved, err := s.storage.Fetch(ulid)
 	if err != nil {
 		return storages.RecordedByteOutput{}, err
