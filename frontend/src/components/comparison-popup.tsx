@@ -7,6 +7,7 @@ import {
 import { selectExecutionResponse } from "@/store/execution-response";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
+import { Header } from "@/types";
 import { BodyType } from "@/utils/get-url";
 import { stringifyHeader } from "@/utils/stringify-header";
 
@@ -115,12 +116,12 @@ interface TransactionProps {
   statusCode: number;
   ulid: string;
   body: string;
-  header: { [key: string]: string[] };
+  header: Header;
   isText: boolean;
 }
 
 function Request(props: TransactionProps) {
-  const { header, statusCode, isText, body, ulid } = props;
+  const { header, isText, body, ulid } = props;
   return (
     <div className="p-4 rounded-md">
       <h3 className="text-lg font-semibold my-2"></h3>
@@ -134,7 +135,12 @@ function Request(props: TransactionProps) {
           {body}
         </code>
       ) : (
-        <TagBinary ulid={ulid} type="req-body" className="mt-2" />
+        <TagBinary
+          ulid={ulid}
+          type="req-body"
+          className="mt-2"
+          contentLength={header["Content-Length"]}
+        />
       )}
     </div>
   );
@@ -167,7 +173,12 @@ function Response(props: {
           {body}
         </code>
       ) : (
-        <TagBinary ulid={ulid} type={type} className="mt-2" />
+        <TagBinary
+          ulid={ulid}
+          type={type}
+          className="mt-2"
+          contentLength={header["Content-Length"]}
+        />
       )}
     </div>
   );

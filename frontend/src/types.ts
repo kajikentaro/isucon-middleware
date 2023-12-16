@@ -4,10 +4,10 @@ export interface RecordedTransaction {
   StatusCode: number;
   Ulid: string;
   ResBody: string;
-  ResHeader: { [key: string]: string[] };
+  ResHeader: Header;
   ReqBody: string;
   Url: string;
-  ReqHeader: { [key: string]: string[] };
+  ReqHeader: Header;
   Method: string;
 }
 
@@ -15,8 +15,10 @@ export interface ExecutionResponse {
   IsSameResBody: true;
   IsSameResHeader: true;
   IsSameStatusCode: true;
-  ActualResHeader: { [key: string]: string[] };
+  ActualResHeader: Header;
   ActualResBody: string;
   IsBodyText: boolean;
   StatusCode: number;
 }
+
+export type Header = { [key: string]: string[] };

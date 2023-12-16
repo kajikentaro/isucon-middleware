@@ -44,7 +44,11 @@ export default function TableRow(props: Props) {
             {item.ReqBody}
           </code>
         ) : (
-          <TagBinary ulid={ulid} type="req-body" />
+          <TagBinary
+            ulid={ulid}
+            type="req-body"
+            contentLength={item.ReqHeader["Content-Length"]}
+          />
         )}
       </td>
       <td className="px-4 py-2 whitespace-nowrap">
@@ -56,7 +60,11 @@ export default function TableRow(props: Props) {
             {item.ResBody}
           </code>
         ) : (
-          <TagBinary ulid={ulid} type="res-body" />
+          <TagBinary
+            ulid={ulid}
+            type="res-body"
+            contentLength={item.ResHeader["Content-Length"]}
+          />
         )}
       </td>
       <td className="px-4 py-2 whitespace-nowrap">
