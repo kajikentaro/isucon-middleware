@@ -7,6 +7,7 @@ import {
 import { selectExecutionResponse } from "@/store/execution-response";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
+import { BodyType } from "@/utils/get-url";
 import { stringifyHeader } from "@/utils/stringify-header";
 
 export default function ComparisonPopup() {
@@ -26,7 +27,7 @@ export default function ComparisonPopup() {
       onClick={onClose}
     >
       <div
-        className="bg-white p-6 rounded-md w-full h-full relative"
+        className="bg-white p-6 rounded-md w-full h-full relative overflow-y-auto"
         onClick={(e) => {
           e.stopPropagation();
         }}
@@ -58,19 +59,27 @@ function ModalContents() {
     <div className="flex justify-center">
       <div className="w-full flex">
         <Transaction
-          header={recordedTransaction.ResHeader}
-          statusCode={recordedTransaction.StatusCode}
-          body={recordedTransaction.ResBody}
+          transaction={{
+            statusCode: recordedTransaction.StatusCode,
+            ulid: popupState.ulid,
+            body: recordedTransaction.ResBody,
+            header: recordedTransaction.ResHeader,
+            isText: recordedTransaction.IsResText,
+          }}
+          type="res-body"
           title="Recorded Response"
-          isText={recordedTransaction.IsResText}
         />
         {executionResponse ? (
           <Transaction
-            header={executionResponse.ActualResHeader}
-            statusCode={executionResponse.StatusCode}
-            body={executionResponse.ActualResBody}
+            transaction={{
+              statusCode: executionResponse.StatusCode,
+              ulid: popupState.ulid,
+              body: executionResponse.ActualResBody,
+              header: executionResponse.ActualResHeader,
+              isText: executionResponse.IsBodyText,
+            }}
+            type="reproduced-res-body"
             title="Actual Response"
-            isText={executionResponse.IsBodyText}
           />
         ) : (
           <div className="w-1/2 border border-gray-300 p-4 rounded-md mb-4">
@@ -92,19 +101,27 @@ function ModalContents() {
 }
 
 interface TransactionProps {
-  header: { [key: string]: string[] };
-  statusCode: number;
-  body: string;
+  type: BodyType;
+  transaction: {
+    statusCode: number;
+    ulid: string;
+    body: string;
+    header: { [key: string]: string[] };
+    isText: boolean;
+  };
   title: string;
-  isText: boolean;
 }
 function Transaction(props: TransactionProps) {
-  const { header, statusCode, body, title, isText } = props;
+  const {
+    type,
+    title,
+    transaction: { header, statusCode, isText, body, ulid },
+  } = props;
   return (
     <div className="w-1/2 border border-gray-300 p-4 rounded-md mb-4">
       <h3 className="text-lg font-semibold my-2">{title}</h3>
       <p>Response Header:</p>
-      <code className="block bg-black text-white p-2 rounded-md my-2">
+      <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
         {stringifyHeader(header)}
       </code>
       <p>Status Code:</p>
@@ -113,9 +130,11 @@ function Transaction(props: TransactionProps) {
       </code>
       <p>Response Body:</p>
       {isText ? (
-        <code className="block bg-black text-white p-2 rounded-md my-2"></code>
+        <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
+          {body}
+        </code>
       ) : (
-        <TagThisIsBinary />
+        <TagThisIsBinary ulid={ulid} type={type} />
       )}
     </div>
   );

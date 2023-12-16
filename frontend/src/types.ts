@@ -7,7 +7,7 @@ export interface RecordedTransaction {
   ResHeader: { [key: string]: string[] };
   ReqBody: string;
   Url: string;
-  Header: { [key: string]: string[] };
+  ReqHeader: { [key: string]: string[] };
   Method: string;
 }
 
