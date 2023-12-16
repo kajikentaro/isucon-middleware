@@ -1,5 +1,5 @@
 import { useOnExecute } from "@/hooks/use-execute";
-import { TagThisIsBinary } from "@/parts/tag-this-is-binary";
+import { TagBinary } from "@/parts/tag-binary";
 import {
   closeComparisonPopup,
   selectComparisonPopup,
@@ -27,14 +27,14 @@ export default function ComparisonPopup() {
       onClick={onClose}
     >
       <div
-        className="bg-white p-6 rounded-md w-full h-full relative overflow-y-auto"
+        className="bg-white p-6 rounded-md w-full h-full overflow-y-auto"
         onClick={(e) => {
           e.stopPropagation();
         }}
       >
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-600 hover:text-gray-800 text-xl w-12 h-12 bg-slate-100 rounded-full"
+          className="absolute top-30 right-20 text-gray-800 text-xl w-12 h-12 bg-slate-200 hover:opacity-80 rounded-full"
         >
           X
         </button>
@@ -56,69 +56,102 @@ function ModalContents() {
   const onExecute = useOnExecute(popupState.ulid);
 
   return (
-    <div className="flex justify-center">
-      <div className="w-full flex">
-        <Transaction
-          transaction={{
-            statusCode: recordedTransaction.StatusCode,
-            ulid: popupState.ulid,
-            body: recordedTransaction.ResBody,
-            header: recordedTransaction.ResHeader,
-            isText: recordedTransaction.IsResText,
-          }}
-          type="res-body"
-          title="Recorded Response"
-        />
-        {executionResponse ? (
-          <Transaction
+    <div>
+      <Request
+        statusCode={recordedTransaction.StatusCode}
+        ulid={popupState.ulid}
+        body={recordedTransaction.ReqBody}
+        header={recordedTransaction.ReqHeader}
+        isText={recordedTransaction.IsReqText}
+      />
+      <span className="mb-4 h-0.5 bg-gray-300 block" />
+      <div className="flex justify-center">
+        <div className="w-full flex">
+          <Response
             transaction={{
-              statusCode: executionResponse.StatusCode,
+              statusCode: recordedTransaction.StatusCode,
               ulid: popupState.ulid,
-              body: executionResponse.ActualResBody,
-              header: executionResponse.ActualResHeader,
-              isText: executionResponse.IsBodyText,
+              body: recordedTransaction.ResBody,
+              header: recordedTransaction.ResHeader,
+              isText: recordedTransaction.IsResText,
             }}
-            type="reproduced-res-body"
-            title="Actual Response"
+            type="res-body"
+            title="Recorded Response"
           />
-        ) : (
-          <div className="w-1/2 border border-gray-300 p-4 rounded-md mb-4">
-            <p>This transaction have not been executed yet</p>
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full mt-10 m-auto block"
-              onClick={(e) => {
-                e.stopPropagation();
-                onExecute();
+          <span className="w-0.5 bg-gray-300" />
+          {executionResponse ? (
+            <Response
+              transaction={{
+                statusCode: executionResponse.StatusCode,
+                ulid: popupState.ulid,
+                body: executionResponse.ActualResBody,
+                header: executionResponse.ActualResHeader,
+                isText: executionResponse.IsBodyText,
               }}
-            >
-              Execute
-            </button>
-          </div>
-        )}
+              type="reproduced-res-body"
+              title="Actual Response"
+            />
+          ) : (
+            <div className="w-1/2 p-4 rounded-md mb-4">
+              <p>This transaction have not been executed yet</p>
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full mt-10 m-auto block"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExecute();
+                }}
+              >
+                Execute
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 interface TransactionProps {
-  type: BodyType;
-  transaction: {
-    statusCode: number;
-    ulid: string;
-    body: string;
-    header: { [key: string]: string[] };
-    isText: boolean;
-  };
-  title: string;
+  statusCode: number;
+  ulid: string;
+  body: string;
+  header: { [key: string]: string[] };
+  isText: boolean;
 }
-function Transaction(props: TransactionProps) {
+
+function Request(props: TransactionProps) {
+  const { header, statusCode, isText, body, ulid } = props;
+  return (
+    <div className="p-4 rounded-md">
+      <h3 className="text-lg font-semibold my-2"></h3>
+      <p>Request Header:</p>
+      <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
+        {stringifyHeader(header)}
+      </code>
+      <p>Request Body:</p>
+      {isText ? (
+        <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
+          {body}
+        </code>
+      ) : (
+        <TagBinary ulid={ulid} type="req-body" className="mt-2" />
+      )}
+    </div>
+  );
+}
+
+function Response(props: {
+  transaction: TransactionProps;
+  title: string;
+  type: BodyType;
+}) {
   const {
     type,
     title,
     transaction: { header, statusCode, isText, body, ulid },
   } = props;
   return (
-    <div className="w-1/2 border border-gray-300 p-4 rounded-md mb-4">
+    <div className="w-1/2 p-4 rounded-md mb-4">
       <h3 className="text-lg font-semibold my-2">{title}</h3>
       <p>Response Header:</p>
       <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
@@ -134,7 +167,7 @@ function Transaction(props: TransactionProps) {
           {body}
         </code>
       ) : (
-        <TagThisIsBinary ulid={ulid} type={type} />
+        <TagBinary ulid={ulid} type={type} className="mt-2" />
       )}
     </div>
   );

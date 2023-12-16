@@ -1,6 +1,6 @@
 "use client";
 import { useOnExecute } from "@/hooks/use-execute";
-import { TagThisIsBinary } from "@/parts/tag-this-is-binary";
+import { TagBinary } from "@/parts/tag-binary";
 import { showComparisonPopup } from "@/store/comparison-popup";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
@@ -44,7 +44,7 @@ export default function TableRow(props: Props) {
             {item.ReqBody}
           </code>
         ) : (
-          <TagThisIsBinary ulid={ulid} type="req-body" />
+          <TagBinary ulid={ulid} type="req-body" />
         )}
       </td>
       <td className="px-4 py-2 whitespace-nowrap">
@@ -56,7 +56,7 @@ export default function TableRow(props: Props) {
             {item.ResBody}
           </code>
         ) : (
-          <TagThisIsBinary ulid={ulid} type="res-body" />
+          <TagBinary ulid={ulid} type="res-body" />
         )}
       </td>
       <td className="px-4 py-2 whitespace-nowrap">
