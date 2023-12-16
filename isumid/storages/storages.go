@@ -15,7 +15,6 @@ type Storage struct {
 	models.Setting
 }
 
-// 型を絞ったので、これで再実装する
 type RecordedDataInput struct {
 	Method    string
 	Url       string
@@ -38,11 +37,6 @@ type Meta struct {
 	IsReqText bool
 	IsResText bool
 	Ulid      string
-}
-
-type FetchBodyResponse struct {
-	Body   []byte
-	Header map[string][]string
 }
 
 func New(setting models.Setting) Storage {
@@ -85,7 +79,16 @@ func (s Storage) Save(data RecordedDataInput) error {
 		if err != nil {
 			return err
 		}
-		meta := Meta{StatusCode: data.StatusCode, IsReqText: IsText(data.ReqOthers.Header), IsResText: IsText(data.ResHeader), Ulid: ulidStr}
+		meta := Meta{
+			Method:     data.Method,
+			Url:        data.Url,
+			ReqHeader:  data.ReqHeader,
+			StatusCode: data.StatusCode,
+			ResHeader:  data.ResHeader,
+			IsReqText:  IsText(data.ReqHeader),
+			IsResText:  IsText(data.ResHeader),
+			Ulid:       ulidStr,
+		}
 		data, err := msgpack.Marshal(meta)
 		if err != nil {
 			return err
@@ -120,36 +123,25 @@ func (s Storage) Save(data RecordedDataInput) error {
 		}
 	}
 
-	// save request header data
-	{
-		path := filepath.Join(s.OutputDir, ulidStr+".req.others")
-		data, err := msgpack.Marshal(data.ReqOthers)
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(path, data, 0666)
-		if err != nil {
-			return err
-		}
-	}
-
-	// save response header data
-	{
-		path := filepath.Join(s.OutputDir, ulidStr+".res.header")
-		data, err := msgpack.Marshal(data.ResHeader)
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(path, data, 0666)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
-func (s Storage) fetchAllMetaData() ([]Meta, error) {
+func (s Storage) FetchMeta(ulid string) (Meta, error) {
+	data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".meta"))
+	if err != nil {
+		return Meta{}, err
+	}
+
+	var meta Meta
+	err = msgpack.Unmarshal(data, &meta)
+	if err != nil {
+		return Meta{}, err
+	}
+
+	return meta, nil
+}
+
+func (s Storage) FetchAllMeta() ([]Meta, error) {
 	fileList, err := os.ReadDir(s.OutputDir)
 	if err != nil {
 		return nil, err
@@ -181,175 +173,59 @@ func (s Storage) fetchAllMetaData() ([]Meta, error) {
 	return res, nil
 }
 
-func (s Storage) FetchAll() ([]RecordedDisplayableOutput, error) {
-	metaList, err := s.fetchAllMetaData()
+func (s Storage) fetchFile(fileName string) ([]byte, error) {
+	body, err := os.ReadFile(filepath.Join(s.OutputDir, fileName))
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func (s Storage) FetchReqBody(ulid string) ([]byte, error) {
+	return s.fetchFile(ulid + ".req.body")
+}
+
+func (s Storage) FetchResBody(ulid string) ([]byte, error) {
+	return s.fetchFile(ulid + ".res.body")
+}
+
+func (s Storage) FetchReproducedBody(ulid string) ([]byte, error) {
+	return s.fetchFile(ulid + ".reproduced.body")
+}
+
+func (s Storage) FetchReproducedHeader(ulid string) (map[string][]string, error) {
+	data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".reproduced.header"))
 	if err != nil {
 		return nil, err
 	}
 
-	res := []RecordedDisplayableOutput{}
-	for _, meta := range metaList {
-		saveData := RecordedDisplayableOutput{Meta: meta}
-		{
-			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".req.others"))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				continue
-			}
-			msgpack.Unmarshal(data, &saveData.ReqOthers)
-		}
-		{
-			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".res.header"))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				continue
-			}
-			msgpack.Unmarshal(data, &saveData.ResHeader)
-		}
-		if meta.IsReqText {
-			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".req.body"))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				continue
-			}
-			saveData.ReqBody = string(data)
-		}
-		if meta.IsResText {
-			data, err := os.ReadFile(filepath.Join(s.OutputDir, meta.Ulid+".res.body"))
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				continue
-			}
-			saveData.ResBody = string(data)
-		}
-		res = append(res, saveData)
-	}
-
-	return res, nil
-}
-
-func (s Storage) FetchReq(ulid string) (FetchBodyResponse, error) {
-	body, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.body"))
-	if err != nil {
-		return FetchBodyResponse{}, err
-	}
-
-	var others RequestOthers
-	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.others"))
-		if err != nil {
-			return FetchBodyResponse{}, err
-		}
-		err = msgpack.Unmarshal(data, &others)
-		if err != nil {
-			return FetchBodyResponse{}, err
-		}
-	}
-
-	return FetchBodyResponse{Body: body, Header: others.Header}, nil
-}
-
-func (s Storage) FetchRes(ulid string) (FetchBodyResponse, error) {
-	body, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.body"))
-	if err != nil {
-		return FetchBodyResponse{}, err
-	}
-
 	var header map[string][]string
-	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.header"))
-		if err != nil {
-			return FetchBodyResponse{}, err
-		}
-		err = msgpack.Unmarshal(data, &header)
-		if err != nil {
-			return FetchBodyResponse{}, err
-		}
-	}
-
-	return FetchBodyResponse{Body: body, Header: header}, nil
-}
-
-func (s Storage) FetchReproducedRes(ulid string) (FetchBodyResponse, error) {
-	body, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".reproduced.res.body"))
-	if err != nil {
-		return FetchBodyResponse{}, err
-	}
-
-	var header map[string][]string
-	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".reproduced.meta"))
-		if err != nil {
-			return FetchBodyResponse{}, err
-		}
-		err = msgpack.Unmarshal(data, &header)
-		if err != nil {
-			return FetchBodyResponse{}, err
-		}
-	}
-
-	return FetchBodyResponse{Body: body, Header: header}, nil
-}
-
-func (s Storage) FetchReproducedResBody(ulid string) ([]byte, error) {
-	data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".reproduced.res.body"))
+	err = msgpack.Unmarshal(data, &header)
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+
+	return header, nil
 }
 
-func (s Storage) FetchForReproduce(ulid string) (RecordedDetailOutput, error) {
-	res := RecordedDetailOutput{}
-
+func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]string) error {
 	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".meta"))
+		path := filepath.Join(s.OutputDir, ulid+".reproduced.header")
+		data, err := msgpack.Marshal(header)
 		if err != nil {
-			return RecordedDetailOutput{}, err
+			return err
 		}
-		err = msgpack.Unmarshal(data, &res.Meta)
+		err = os.WriteFile(path, data, 0666)
 		if err != nil {
-			return RecordedDetailOutput{}, err
+			return err
 		}
 	}
-
 	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.body"))
+		path := filepath.Join(s.OutputDir, ulid+".reproduced.body")
+		err := os.WriteFile(path, body, 0666)
 		if err != nil {
-			return RecordedDetailOutput{}, err
-		}
-		res.ReqBody = data
-	}
-
-	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.body"))
-		if err != nil {
-			return RecordedDetailOutput{}, err
-		}
-		res.ResBody = data
-	}
-
-	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".req.others"))
-		if err != nil {
-			return RecordedDetailOutput{}, err
-		}
-		err = msgpack.Unmarshal(data, &res.ReqOthers)
-		if err != nil {
-			return RecordedDetailOutput{}, err
+			return err
 		}
 	}
-
-	{
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".res.header"))
-		if err != nil {
-			return RecordedDetailOutput{}, err
-		}
-		err = msgpack.Unmarshal(data, &res.ResHeader)
-		if err != nil {
-			return RecordedDetailOutput{}, err
-		}
-	}
-
-	return res, nil
+	return nil
 }

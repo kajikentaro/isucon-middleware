@@ -1,10 +1,11 @@
 "use client";
-import { MouseEvent } from "react";
 import { useOnExecute } from "@/hooks/use-execute";
-import ProgressIcon from "./progress-icon";
+import { TagThisIsBinary } from "@/parts/tag-this-is-binary";
+import { showComparisonPopup } from "@/store/comparison-popup";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
-import { showComparisonPopup } from "@/store/comparison-popup";
+import { MouseEvent } from "react";
+import ProgressIcon from "./progress-icon";
 
 interface Props {
   ulid: string;
@@ -35,13 +36,29 @@ export default function TableRow(props: Props) {
           }`}
         />
       </td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.ReqOthers.Method}</td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.ReqOthers.Url}</td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.ReqBody}</td>
+      <td className="px-4 py-2 whitespace-nowrap">{item.Method}</td>
+      <td className="px-4 py-2 whitespace-nowrap">{item.Url}</td>
+      <td className="px-4 whitespace-nowrap overflow-hidden max-w-0">
+        {item.IsReqText ? (
+          <code className="bg-gray-700 text-white p-1 text-xs">
+            {item.ReqBody}
+          </code>
+        ) : (
+          <TagThisIsBinary />
+        )}
+      </td>
       <td className="px-4 py-2 whitespace-nowrap">
         {item.StatusCode.toString()}
       </td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.ResBody}</td>
+      <td className="px-4 py-2 whitespace-nowrap overflow-hidden max-w-0">
+        {item.IsResText ? (
+          <code className="bg-gray-700 text-white p-1 text-xs">
+            {item.ResBody}
+          </code>
+        ) : (
+          <TagThisIsBinary />
+        )}
+      </td>
       <td className="px-4 py-2 whitespace-nowrap">
         <ProgressIcon ulid={item.Ulid} />
       </td>

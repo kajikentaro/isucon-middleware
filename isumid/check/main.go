@@ -14,7 +14,8 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	b, _ := io.ReadAll(r.Body)
 	fmt.Println("handler:", len(b))
-	w.Write(b)
+	w.Write([]byte("test response"))
+	w.Header().Add("sample header", "sample header")
 
 	err := r.Body.Close()
 	if err != nil {

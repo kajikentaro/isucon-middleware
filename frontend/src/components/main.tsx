@@ -10,6 +10,7 @@ import {
   setRecordedTransactionList,
 } from "@/store/recorded-transaction";
 import { RecordedTransaction } from "@/types";
+import { getFetchAllUrl } from "@/utils/get-url";
 import { MouseEvent, useEffect, useState } from "react";
 
 export default function Main() {
@@ -51,7 +52,7 @@ export default function Main() {
   };
 
   const fetchData = async () => {
-    const response = await fetch("http://localhost:8080/fetch-all", {});
+    const response = await fetch(getFetchAllUrl(), {});
     const json: RecordedTransaction[] = await response.json();
     dispatch(setRecordedTransactionList(json));
 

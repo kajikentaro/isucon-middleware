@@ -1,4 +1,5 @@
 import { useOnExecute } from "@/hooks/use-execute";
+import { TagThisIsBinary } from "@/parts/tag-this-is-binary";
 import {
   closeComparisonPopup,
   selectComparisonPopup,
@@ -61,6 +62,7 @@ function ModalContents() {
           statusCode={recordedTransaction.StatusCode}
           body={recordedTransaction.ResBody}
           title="Recorded Response"
+          isText={recordedTransaction.IsResText}
         />
         {executionResponse ? (
           <Transaction
@@ -68,6 +70,7 @@ function ModalContents() {
             statusCode={executionResponse.StatusCode}
             body={executionResponse.ActualResBody}
             title="Actual Response"
+            isText={executionResponse.IsBodyText}
           />
         ) : (
           <div className="w-1/2 border border-gray-300 p-4 rounded-md mb-4">
@@ -93,24 +96,27 @@ interface TransactionProps {
   statusCode: number;
   body: string;
   title: string;
+  isText: boolean;
 }
 function Transaction(props: TransactionProps) {
-  const { header, statusCode, body, title } = props;
+  const { header, statusCode, body, title, isText } = props;
   return (
     <div className="w-1/2 border border-gray-300 p-4 rounded-md mb-4">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <h3 className="text-lg font-semibold my-2">{title}</h3>
       <p>Response Header:</p>
-      <code className="block bg-black text-white p-2 rounded-md mb-2">
+      <code className="block bg-black text-white p-2 rounded-md my-2">
         {stringifyHeader(header)}
       </code>
       <p>Status Code:</p>
-      <code className="block bg-black text-white p-2 rounded-md mb-2">
+      <code className="block bg-black text-white p-2 rounded-md my-2">
         {statusCode}
       </code>
       <p>Response Body:</p>
-      <code className="block bg-black text-white p-2 rounded-md mb-2">
-        {body}
-      </code>
+      {isText ? (
+        <code className="block bg-black text-white p-2 rounded-md my-2"></code>
+      ) : (
+        <TagThisIsBinary />
+      )}
     </div>
   );
 }

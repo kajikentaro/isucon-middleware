@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/stretchr/testify/assert"
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
@@ -16,20 +17,19 @@ var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
 func TestMain(m *testing.M) {
 	fmt.Println(OUTPUT_DIR)
 	m.Run()
+	os.RemoveAll(OUTPUT_DIR)
 }
 
 func TestSave(t *testing.T) {
 	// prepqre request
 	saveData := RecordedDataInput{
-		ReqBody: []byte("Test Request Body"),
-		ReqOthers: RequestOthers{
-			Url:    "https://example.com/test-url/",
-			Header: map[string][]string{"Content-Type": {"text/plain"}},
-			Method: "GET",
-		},
-		ResBody:    []byte("Test Response Body"),
-		ResHeader:  map[string][]string{},
+		Method:     "GET",
+		Url:        "/test-url",
+		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},
+		ReqBody:    []byte("Test Request Body"),
 		StatusCode: 200,
+		ResHeader:  map[string][]string{"Content-Type": {"text/plain"}},
+		ResBody:    []byte("Test Response Body"),
 	}
 
 	// prepare storage
@@ -43,40 +43,137 @@ func TestSave(t *testing.T) {
 	}
 }
 
-func TestFetchAllMetadata(t *testing.T) {
+func getUlid(t *testing.T) string {
+	fileList, err := os.ReadDir(OUTPUT_DIR)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	parts := strings.Split(fileList[0].Name(), ".")
+	return parts[0]
+}
+
+func TestFetchMeta(t *testing.T) {
 	// prepare storage
 	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
-	// test start
-	actual, err := storage.fetchAllMetaData()
+	ulid := getUlid(t)
+	actual, err := storage.FetchMeta(ulid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := Meta{
+		Method:     "GET",
+		Url:        "/test-url",
+		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},
+		StatusCode: 200,
+		ResHeader:  map[string][]string{"Content-Type": {"text/plain"}},
+		IsReqText:  false,
+		IsResText:  true,
+		Ulid:       ulid,
+	}
+	assert.Exactly(t, expected, actual)
+}
+
+func TestFetchAllMeta(t *testing.T) {
+	// prepare storage
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	actual, err := storage.FetchAllMeta()
 	if err != nil {
 		t.Fatal(err)
 	}
 	// ignore ulid
 	actual[0].Ulid = ""
 
-	expected := []Meta{{IsReqText: true, IsResText: false, StatusCode: 200, Ulid: ""}}
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("expected: \t\n%#v, actual: \t\n%#v", expected, actual)
+	expected := []Meta{{
+		Method:     "GET",
+		Url:        "/test-url",
+		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},
+		StatusCode: 200,
+		ResHeader:  map[string][]string{"Content-Type": {"text/plain"}},
+		IsReqText:  false,
+		IsResText:  true,
+		Ulid:       "",
+	}}
+	assert.Exactly(t, expected, actual)
+}
+
+func TestFetchReqBody(t *testing.T) {
+	// prepare storage
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	ulid := getUlid(t)
+	actual, err := storage.FetchReqBody(ulid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []byte("Test Request Body")
+	assert.Exactly(t, expected, actual)
+}
+
+func TestFetchResBody(t *testing.T) {
+	// prepare storage
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	ulid := getUlid(t)
+	actual, err := storage.FetchResBody(ulid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []byte("Test Response Body")
+	assert.Exactly(t, expected, actual)
+}
+
+func TestSaveReproduced(t *testing.T) {
+	// prepare storage
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	ulid := getUlid(t)
+	err := storage.SaveReproduced(
+		ulid,
+		[]byte("Test Reproduced Body"),
+		map[string][]string{"Content-Type": {"text/plain"}},
+	)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
-func TestFetchAll(t *testing.T) {
+func TestFetchReproducedHeader(t *testing.T) {
 	// prepare storage
 	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
-	// test start
-	actual, err := storage.FetchAll()
+	ulid := getUlid(t)
+	actual, err := storage.FetchReproducedHeader(ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// ignore ulid
-	actual[0].Ulid = ""
 
-	expected := []RecordedDisplayableOutput{{Meta: Meta{IsReqText: true, IsResText: false, StatusCode: 200, Ulid: ""}, ResBody: "", ResHeader: map[string][]string{}, ReqBody: "Test Request Body", ReqOthers: RequestOthers{Url: "https://example.com/test-url/", Header: map[string][]string{"Content-Type": {"text/plain"}}, Method: "GET"}}}
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("expected: \t\n%#v, \nactual: \t\n%#v", expected, actual)
+	expected := map[string][]string{"Content-Type": {"text/plain"}}
+	assert.Exactly(t, expected, actual)
+}
+
+func TestFetchReproducedBody(t *testing.T) {
+	// prepare storage
+	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	ulid := getUlid(t)
+	actual, err := storage.FetchReproducedBody(ulid)
+	if err != nil {
+		t.Fatal(err)
 	}
+
+	expected := []byte("Test Reproduced Body")
+	assert.Exactly(t, expected, actual)
 }

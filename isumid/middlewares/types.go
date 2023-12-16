@@ -6,29 +6,29 @@ import (
 	"net/http"
 )
 
-type readCloser struct {
+type ReadCloser struct {
 	io.Reader
 	originalClose func() error
 }
 
-func (n readCloser) Close() error {
+func (n ReadCloser) Close() error {
 	return n.originalClose()
 }
 
-type responseWriterSniffer struct {
+type ResponseWriter struct {
 	original    http.ResponseWriter
 	writtenData *[]byte
 	statusCode  *int
 }
 
-func (r responseWriterSniffer) Header() http.Header {
+func (r ResponseWriter) Header() http.Header {
 	return r.original.Header()
 }
-func (r responseWriterSniffer) Write(in []byte) (int, error) {
+func (r ResponseWriter) Write(in []byte) (int, error) {
 	*r.writtenData = in
 	return r.original.Write(in)
 }
-func (r responseWriterSniffer) WriteHeader(statusCode int) {
+func (r ResponseWriter) WriteHeader(statusCode int) {
 	*r.statusCode = statusCode
 	r.original.WriteHeader(statusCode)
 }

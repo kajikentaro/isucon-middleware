@@ -6,19 +6,17 @@ export interface RecordedTransaction {
   ResBody: string;
   ResHeader: { [key: string]: string[] };
   ReqBody: string;
-  ReqOthers: {
-    Url: string;
-    Header: { [key: string]: string[] };
-    Method: string;
-  };
+  Url: string;
+  Header: { [key: string]: string[] };
+  Method: string;
 }
 
 export interface ExecutionResponse {
-  ActualResBody: string;
-  ActualResHeader: { [key: string]: string[] };
   IsSameResBody: true;
   IsSameResHeader: true;
   IsSameStatusCode: true;
+  ActualResHeader: { [key: string]: string[] };
+  ActualResBody: string;
   IsBodyText: boolean;
   StatusCode: number;
 }

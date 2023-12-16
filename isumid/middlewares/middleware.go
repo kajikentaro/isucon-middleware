@@ -24,38 +24,34 @@ func New(storage storages.Storage) Middleware {
 func (s Middleware) Recorder(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// prepare to read request body
-		var reqBodyBuffer bytes.Buffer
-		reader := io.TeeReader(r.Body, &reqBodyBuffer)
-		sniffedReadCloser := readCloser{
-			Reader:        reader,
+		var sniffer bytes.Buffer
+		newBody := ReadCloser{
+			Reader:        io.TeeReader(r.Body, &sniffer),
 			originalClose: r.Body.Close,
 		}
-		r.Body = sniffedReadCloser
+		r.Body = newBody
 
 		// prepare to read response body
 		statusCode := 200
-		sniffedResponseWriter := responseWriterSniffer{original: w, writtenData: &[]byte{}, statusCode: &statusCode}
+		newW := ResponseWriter{original: w, writtenData: &[]byte{}, statusCode: &statusCode}
 
 		// go to original handler
-		next.ServeHTTP(sniffedResponseWriter, r)
+		next.ServeHTTP(newW, r)
 
-		ReqBodyData, err := io.ReadAll(&reqBodyBuffer)
+		reqBody, err := io.ReadAll(&sniffer)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to read ReqBodyData")
 			return
 		}
 
-		reqOthers := storages.RequestOthers{
-			Url:    r.URL.String(),
-			Header: r.Header,
-			Method: r.Method,
-		}
 		saveData := storages.RecordedDataInput{
-			ReqBody:    ReqBodyData,
-			ResBody:    *sniffedResponseWriter.writtenData,
-			ReqOthers:  reqOthers,
-			ResHeader:  w.Header(),
+			Method:     r.Method,
+			Url:        r.URL.String(),
+			ReqHeader:  r.Header,
+			ReqBody:    reqBody,
 			StatusCode: statusCode,
+			ResHeader:  newW.Header(),
+			ResBody:    *newW.writtenData,
 		}
 		err = s.storage.Save(saveData)
 		if err != nil {
@@ -76,52 +72,62 @@ func (s Middleware) Reproducer(next http.Handler) http.Handler {
 		ulid := parts[2]
 
 		// fetch recorded data
-		saved, err := s.storage.FetchForReproduce(ulid)
+		savedRequestBody, err := s.storage.FetchReqBody(ulid)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to read save data: %#v", err), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("failed to read saved request body: %#v", err), http.StatusInternalServerError)
+			return
+		}
+
+		savedMeta, err := s.storage.FetchMeta(ulid)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to read saved meta data: %#v", err), http.StatusInternalServerError)
 			return
 		}
 
 		// prepqre request
-		request, err := http.NewRequest(saved.ReqOthers.Method, saved.ReqOthers.Url, bytes.NewReader(saved.ReqBody))
-		request.Header = saved.ReqOthers.Header
+		newRequest, err := http.NewRequest(savedMeta.Method, savedMeta.Url, bytes.NewReader(savedRequestBody))
+		newRequest.Header = savedMeta.ReqHeader
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to prepare request: %#v", err), http.StatusBadRequest)
 			return
 		}
 
-		// prepare to read response body
+		// prepare mocked ResponseWriter
 		statusCode := 200
-		responseWriter := responseWriterOwn{header: &http.Header{}, writtenData: &bytes.Buffer{}, statusCode: &statusCode}
+		newResponse := responseWriterOwn{header: &http.Header{}, writtenData: &bytes.Buffer{}, statusCode: &statusCode}
 
 		// go to original handler
-		next.ServeHTTP(responseWriter, request)
+		next.ServeHTTP(newResponse, newRequest)
 
-		actualResBody := responseWriter.writtenData.Bytes()
-		isSameResBody := bytes.Equal(actualResBody, saved.ResBody)
-		var actualHeader map[string][]string = responseWriter.Header() // DeepEqual fail unless convert map[string][]string
-		isSameResHeader := reflect.DeepEqual(actualHeader, saved.ResHeader)
-		isSameStatusCode := statusCode == saved.StatusCode
-		isBodyText := storages.IsText(responseWriter.Header())
+		savedResponseBody, err := s.storage.FetchResBody(ulid)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to read saved request body: %#v", err), http.StatusInternalServerError)
+			return
+		}
+
+		// DeepEqual fail unless convert map[string][]string
+		var actualHeader map[string][]string = newResponse.Header()
+		actualResBody := newResponse.writtenData.Bytes()
+		s.storage.SaveReproduced(ulid, actualResBody, actualHeader)
 
 		res := struct {
 			IsSameResBody    bool
 			IsSameResHeader  bool
 			IsSameStatusCode bool
-			ActualResHeader  http.Header
+			ActualResHeader  map[string][]string
 			ActualResBody    string
 			IsBodyText       bool
 			StatusCode       int
 		}{
-			IsSameResBody:    isSameResBody,
-			IsSameResHeader:  isSameResHeader,
-			IsSameStatusCode: isSameStatusCode,
-			IsBodyText:       isBodyText,
-			ActualResHeader:  responseWriter.Header(),
+			IsSameResBody:    bytes.Equal(actualResBody, savedResponseBody),
+			IsSameResHeader:  reflect.DeepEqual(actualHeader, savedMeta.ResHeader),
+			IsSameStatusCode: statusCode == savedMeta.StatusCode,
+			IsBodyText:       storages.IsText(newResponse.Header()),
+			ActualResHeader:  actualHeader,
 			StatusCode:       statusCode,
 		}
 
-		if isBodyText {
+		if res.IsBodyText {
 			res.ActualResBody = string(actualResBody)
 		}
 
@@ -131,6 +137,7 @@ func (s Middleware) Reproducer(next http.Handler) http.Handler {
 			return
 		}
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(json)
 	})
 }

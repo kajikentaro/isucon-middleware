@@ -24,6 +24,7 @@ func outputErr(w http.ResponseWriter, err error, statusCode int) {
 
 func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 
 	saved, err := h.service.FetchAll()
 	if err != nil {
@@ -43,20 +44,64 @@ func (h Handler) FetchReqBody(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
-		http.Error(w, "Invalid URL: should be /fetch-req-body/[ulid]", http.StatusBadRequest)
+		http.Error(w, "Invalid URL: should be /req-body/[ulid]", http.StatusBadRequest)
 		return
 	}
 	ulid := parts[2]
 
-	saved, err := h.service.Fetch(ulid)
+	saved, err := h.service.FetchReqBody(ulid)
+	if err != nil {
+		outputErr(w, err, http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(w.Header())
+
+	for key, values := range saved.Header {
+		w.Header()[key] = values
+	}
+	w.Write(saved.Body)
+}
+
+func (h Handler) FetchResBody(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "Invalid URL: should be /res-body/[ulid]", http.StatusBadRequest)
+		return
+	}
+	ulid := parts[2]
+
+	saved, err := h.service.FetchResBody(ulid)
 	if err != nil {
 		outputErr(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	res, err := json.Marshal(saved)
+	for key, values := range saved.Header {
+		w.Header()[key] = values
+	}
+	w.Write(saved.Body)
+}
+
+func (h Handler) FetchReproducedResBody(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "Invalid URL: should be /reproduced-res-body/[ulid]", http.StatusBadRequest)
+		return
+	}
+	ulid := parts[2]
+
+	saved, err := h.service.FetchReproducedResBody(ulid)
 	if err != nil {
 		outputErr(w, err, http.StatusInternalServerError)
+		return
 	}
-	w.Write(res)
+
+	for key, values := range saved.Header {
+		w.Header()[key] = values
+	}
+	w.Write(saved.Body)
 }

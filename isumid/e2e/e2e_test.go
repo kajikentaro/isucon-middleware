@@ -10,14 +10,15 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	routers "github.com/kajikentaro/isucon-middleware/isumid"
+	"github.com/kajikentaro/isucon-middleware/isumid"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/services"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
+	"github.com/stretchr/testify/assert"
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
@@ -26,7 +27,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("test dir:", OUTPUT_DIR)
 
 	// prepare server
-	rec := routers.New(models.Setting{OutputDir: OUTPUT_DIR})
+	rec := isumid.New(models.Setting{OutputDir: OUTPUT_DIR})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
 	srv := &http.Server{Addr: ":8888", Handler: mux}
@@ -64,6 +65,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte((fmt.Sprintf("failed to write body: %s", err))))
 	}
 
+	w.Header().Add("sample header", "sample header")
+
 	w.WriteHeader(200)
 }
 
@@ -91,7 +94,7 @@ func TestRecord(t *testing.T) {
 }
 
 func TestFetchAll(t *testing.T) {
-	res, err := http.Get("http://localhost:8888/fetch-all")
+	res, err := http.Get("http://localhost:8888/all")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,37 +107,40 @@ func TestFetchAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	actual := []storages.RecordedDisplayableOutput{}
+	actual := []services.RecordedTransaction{}
 	err = json.Unmarshal(responseBody, &actual)
 	if err != nil {
 		t.Fatal(err)
 	}
 	actual[0].Ulid = ""
 
-	expected := []storages.RecordedDisplayableOutput{{
-		Meta:      storages.Meta{IsReqText: true, IsResText: false, StatusCode: 200, Ulid: ""},
-		ResBody:   "",
-		ResHeader: map[string][]string{},
-		ReqBody:   "Hello World",
-		ReqOthers: storages.RequestOthers{
+	expected := []services.RecordedTransaction{{
+		ResBody: "",
+		ReqBody: "Hello World",
+		Meta: storages.Meta{
 			Url: "/",
-			Header: map[string][]string{
+			ReqHeader: map[string][]string{
 				"Accept-Encoding": {"gzip"},
 				"Content-Length":  {"11"},
 				"Content-Type":    {"text/plain"},
 				"User-Agent":      {"Go-http-client/1.1"},
 			},
 			Method: "POST",
+			ResHeader: map[string][]string{
+				"sample header": {"sample header"},
+			},
+			IsReqText:  true,
+			IsResText:  false,
+			StatusCode: 200,
+			Ulid:       "",
 		},
 	}}
 
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatal("response is not expected")
-	}
+	assert.Exactly(t, expected, actual)
 }
 
 func fetchFirstUlid() (string, error) {
-	res, err := http.Get("http://localhost:8888/fetch-all")
+	res, err := http.Get("http://localhost:8888/all")
 	if err != nil {
 		return "", err
 	}
@@ -147,7 +153,7 @@ func fetchFirstUlid() (string, error) {
 		return "", err
 	}
 
-	actual := []storages.RecordedDisplayableOutput{}
+	actual := []services.RecordedTransaction{}
 	err = json.Unmarshal(responseBody, &actual)
 	if err != nil {
 		return "", err
@@ -155,13 +161,67 @@ func fetchFirstUlid() (string, error) {
 	return actual[0].Ulid, nil
 }
 
-func TestFetch(t *testing.T) {
+func TestFetchResBody(t *testing.T) {
 	ulid, err := fetchFirstUlid()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	res, err := http.Get("http://localhost:8888/fetch/" + ulid)
+	res, err := http.Get("http://localhost:8888/res-body/" + ulid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal("status code is not 200")
+	}
+
+	actualBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedBody := []byte("Hello World Response")
+	assert.Exactly(t, expectedBody, actualBody)
+
+	actualHeader := res.Header
+	actualHeader.Del("Date")
+	expectedHeader := http.Header{"Access-Control-Allow-Origin": []string{"*"}, "Content-Length": []string{"20"}, "Content-Type": []string{"text/plain; charset=utf-8"}}
+	assert.Exactly(t, expectedHeader, actualHeader)
+}
+
+func TestFetchReqBody(t *testing.T) {
+	ulid, err := fetchFirstUlid()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := http.Get("http://localhost:8888/req-body/" + ulid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal("status code is not 200")
+	}
+
+	actualBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedBody := []byte("Hello World")
+	assert.Exactly(t, expectedBody, actualBody)
+
+	actualHeader := res.Header
+	actualHeader.Del("Date")
+	expectedHeader := http.Header{"Accept-Encoding": []string{"gzip"}, "Access-Control-Allow-Origin": []string{"*"}, "Content-Length": []string{"11"}, "Content-Type": []string{"text/plain"}, "User-Agent": []string{"Go-http-client/1.1"}}
+	assert.Exactly(t, expectedHeader, actualHeader)
+}
+
+func TestReproduce(t *testing.T) {
+	ulid, err := fetchFirstUlid()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := http.Get("http://localhost:8888/reproduce/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,19 +233,9 @@ func TestFetch(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	actual := storages.RecordedByteOutput{}
-	err = json.Unmarshal(responseBody, &actual)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expected := storages.RecordedByteOutput{
-		ReqBody: []byte("Hello World"),
-		ResBody: []byte("Hello World Response"),
-	}
-
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatal("response is not expected")
+	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{},"ActualResBody":"","IsBodyText":false,"StatusCode":200}`
+	actual := string(responseBody)
+	if expected != actual {
+		t.Fatalf("response body is not correct: expected %s, actual %s", expected, actual)
 	}
 }
