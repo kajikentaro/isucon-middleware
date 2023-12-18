@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RecordedTransaction } from "../types";
 import { State } from "./main";
 
@@ -21,15 +21,17 @@ const slice = createSlice({
   },
   selectors: {
     selectRecordedTransactionMap: (state) => state,
-    selectRecordedTransactionUlids: (state) => Object.keys(state),
   },
 });
 
 export const recordedTransaction = slice.reducer;
 
-export const { selectRecordedTransactionMap, selectRecordedTransactionUlids } =
-  slice.selectors;
+export const { selectRecordedTransactionMap } = slice.selectors;
 export const selectRecordedTransaction = (ulid: string) => (state: State) =>
   selectRecordedTransactionMap(state)[ulid];
+export const selectRecordedTransactionUlids = createSelector(
+  [selectRecordedTransactionMap],
+  (state) => Object.keys(state)
+);
 
 export const { setRecordedTransactionList } = slice.actions;
