@@ -1,6 +1,6 @@
 import {
-    selectExecutionProgress,
-    setExecutionProgress,
+  selectExecutionProgress,
+  setExecutionProgress,
 } from "@/store/execution-progress";
 import { setExecutionResponse } from "@/store/execution-response";
 import { useAppDispatch, useAppSelector } from "@/store/main";
@@ -18,11 +18,11 @@ export function useOnExecute(ulid: string) {
   return () => {
     dispatch(async (dispatch, getState) => {
       const progress = selectExecutionProgress(ulid)(getState());
-      if (progress === "loading") return;
+      if (progress === "waitingQueue" || progress === "waitingResponse") return;
       dispatch(
         setExecutionProgress({
           ulid,
-          executionProgress: "loading",
+          executionProgress: "waitingResponse",
         })
       );
 
@@ -36,6 +36,34 @@ export function useOnExecute(ulid: string) {
             executeResponse: json,
           })
         );
+
+        if (!json.IsSameStatusCode) {
+          dispatch(
+            setExecutionProgress({
+              ulid,
+              executionProgress: "statusCodeNotSame",
+            })
+          );
+          return;
+        }
+        if (!json.IsSameResBody) {
+          dispatch(
+            setExecutionProgress({
+              ulid,
+              executionProgress: "bodyNotSame",
+            })
+          );
+          return;
+        }
+        if (!json.IsSameResHeader) {
+          dispatch(
+            setExecutionProgress({
+              ulid,
+              executionProgress: "headerNotSame",
+            })
+          );
+          return;
+        }
         dispatch(
           setExecutionProgress({
             ulid,

@@ -67,10 +67,10 @@ export default function TableRow(props: Props) {
           />
         )}
       </td>
-      <td className="px-4 py-2 whitespace-nowrap">
+      <td className="px-4 py-2 whitespace-nowrap text-center">
         <ProgressIcon ulid={item.Ulid} />
       </td>
-      <td className="px-4 py-2 whitespace-nowrap">
+      <td className="px-4 whitespace-nowrap">
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto"
           onClick={(e) => {

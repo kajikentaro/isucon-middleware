@@ -1,7 +1,15 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { State } from "./main";
 
-export type ExecutionProgress = "loading" | "fail" | "success" | "init";
+export type ExecutionProgress =
+  | "waitingResponse"
+  | "fail"
+  | "success"
+  | "statusCodeNotSame"
+  | "headerNotSame"
+  | "bodyNotSame"
+  | "waitingQueue"
+  | "init";
 
 export type ExecutionProgressMap = Record<string, ExecutionProgress>;
 
