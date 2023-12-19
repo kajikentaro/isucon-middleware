@@ -1,14 +1,9 @@
-import {
-  selectExecutionProgress,
-  setExecutionProgress,
-} from "@/store/execution-progress";
-import { setExecutionResponse } from "@/store/execution-response";
+import { execute } from "@/actions/execute";
+import { selectExecutionProgress } from "@/store/execution-progress";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
-import { ExecutionResponse } from "@/types";
-import { getReproduceUrl } from "@/utils/get-url";
 
-export function useOnExecute(ulid: string) {
+export function useExecute(ulid: string) {
   const dispatch = useAppDispatch();
   const target = useAppSelector(selectRecordedTransaction(ulid));
   if (!target) {
@@ -19,65 +14,8 @@ export function useOnExecute(ulid: string) {
     dispatch(async (dispatch, getState) => {
       const progress = selectExecutionProgress(ulid)(getState());
       if (progress === "waitingQueue" || progress === "waitingResponse") return;
-      dispatch(
-        setExecutionProgress({
-          ulid,
-          executionProgress: "waitingResponse",
-        })
-      );
 
-      try {
-        const res = await fetch(getReproduceUrl(ulid));
-        const json = (await res.json()) as ExecutionResponse;
-
-        dispatch(
-          setExecutionResponse({
-            ulid,
-            executeResponse: json,
-          })
-        );
-
-        if (!json.IsSameStatusCode) {
-          dispatch(
-            setExecutionProgress({
-              ulid,
-              executionProgress: "statusCodeNotSame",
-            })
-          );
-          return;
-        }
-        if (!json.IsSameResBody) {
-          dispatch(
-            setExecutionProgress({
-              ulid,
-              executionProgress: "bodyNotSame",
-            })
-          );
-          return;
-        }
-        if (!json.IsSameResHeader) {
-          dispatch(
-            setExecutionProgress({
-              ulid,
-              executionProgress: "headerNotSame",
-            })
-          );
-          return;
-        }
-        dispatch(
-          setExecutionProgress({
-            ulid,
-            executionProgress: "success",
-          })
-        );
-      } catch (e) {
-        dispatch(
-          setExecutionProgress({
-            ulid,
-            executionProgress: "fail",
-          })
-        );
-      }
+      dispatch(execute(ulid));
     });
   };
 }

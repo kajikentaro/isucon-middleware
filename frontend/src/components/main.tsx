@@ -1,5 +1,6 @@
 "use client";
 import TableRow from "@/components/table-row";
+import { useExecuteChecked } from "@/hooks/use-execute-checked";
 import {
   ExecutionProgressMap,
   setExecutionProgressAll,
@@ -21,6 +22,8 @@ export default function Main() {
 
   const [selected, setSelected] = useState<boolean[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
+
+  const onExecuteChecked = useExecuteChecked();
 
   const isAllSelected = selected.every((s) => s) && selected.length > 0;
 
@@ -67,11 +70,26 @@ export default function Main() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="flex flex-col justify-center items-center">
-      <h1 className="text-3xl font-bold mb-4">Fetch All</h1>
+      <div className="flex w-full justify-between px-4 py-3 mb-2">
+        <h1 className="text-3xl font-bold">Isucon Middleware</h1>
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full flex items-center"
+          onClick={(e) => {
+            const checkedUlids = recordedTransactionUlids.filter(
+              (_, idx) => selected[idx]
+            );
+            onExecuteChecked(checkedUlids);
+            e.stopPropagation();
+          }}
+        >
+          Execute Checked
+        </button>
+      </div>
       <table className="table-auto border-collapse w-full">
         <thead>
           <tr className="border-b bg-gray-100 text-gray-600">

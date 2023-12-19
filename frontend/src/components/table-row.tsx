@@ -1,11 +1,11 @@
 "use client";
-import { useOnExecute } from "@/hooks/use-execute";
+import { useExecute } from "@/hooks/use-execute";
 import { TagBinary } from "@/parts/tag-binary";
 import { showComparisonPopup } from "@/store/comparison-popup";
 import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { MouseEvent } from "react";
-import ProgressIcon from "./progress-icon";
+import ProgressIcon from "../parts/progress-icon";
 
 interface Props {
   ulid: string;
@@ -17,7 +17,7 @@ export default function TableRow(props: Props) {
   const { handleCheckboxClick, isSelected, ulid } = props;
 
   const item = useAppSelector(selectRecordedTransaction(ulid));
-  const onExecute = useOnExecute(item.Ulid);
+  const onExecute = useExecute(item.Ulid);
   const dispatch = useAppDispatch();
 
   const onClickRow = () => {

@@ -1,4 +1,4 @@
-import { useOnExecute } from "@/hooks/use-execute";
+import { useExecute } from "@/hooks/use-execute";
 import { TagBinary } from "@/parts/tag-binary";
 import {
   closeComparisonPopup,
@@ -54,7 +54,7 @@ function ModalContents() {
   const executionResponse = useAppSelector(
     selectExecutionResponse(popupState.ulid)
   );
-  const onExecute = useOnExecute(popupState.ulid);
+  const onExecute = useExecute(popupState.ulid);
 
   return (
     <div>
