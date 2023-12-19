@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
+	"mime"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
@@ -104,4 +107,28 @@ func (h Handler) FetchReproducedResBody(w http.ResponseWriter, r *http.Request) 
 		w.Header()[key] = values
 	}
 	w.Write(saved.Body)
+}
+
+//go:embed front-built/*
+var assets embed.FS
+
+func (h Handler) Frontend(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "Invalid URL: should be /isumid/[filepath]", http.StatusBadRequest)
+		return
+	}
+	filePath := strings.Join(parts[2:], "/")
+
+	data, err := assets.ReadFile("front-built/" + filePath)
+	if err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+
+	extension := filepath.Ext(filePath)
+	if mimeType := mime.TypeByExtension(extension); mimeType != "" {
+		w.Header().Add("Content-Type", mimeType)
+	}
+	fmt.Fprintf(w, "%s", data)
 }
