@@ -94,7 +94,7 @@ func TestRecord(t *testing.T) {
 }
 
 func TestFetchAll(t *testing.T) {
-	res, err := http.Get("http://localhost:8888/all")
+	res, err := http.Get("http://localhost:8888/isumid/all")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +140,7 @@ func TestFetchAll(t *testing.T) {
 }
 
 func fetchFirstUlid() (string, error) {
-	res, err := http.Get("http://localhost:8888/all")
+	res, err := http.Get("http://localhost:8888/isumid/all")
 	if err != nil {
 		return "", err
 	}
@@ -167,7 +167,7 @@ func TestFetchResBody(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Get("http://localhost:8888/res-body/" + ulid)
+	res, err := http.Get("http://localhost:8888/isumid/res-body/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,7 +194,7 @@ func TestFetchReqBody(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Get("http://localhost:8888/req-body/" + ulid)
+	res, err := http.Get("http://localhost:8888/isumid/req-body/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +221,7 @@ func TestReproduce(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := http.Get("http://localhost:8888/reproduce/" + ulid)
+	res, err := http.Get("http://localhost:8888/isumid/reproduce/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}

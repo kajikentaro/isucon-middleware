@@ -65,11 +65,11 @@ func (s Middleware) Reproducer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get ulid from path
 		parts := strings.Split(r.URL.Path, "/")
-		if len(parts) < 3 || parts[2] == "" {
-			http.Error(w, "invalid URL: should be /reproduce/[ulid]", http.StatusBadRequest)
+		if len(parts) < 4 || parts[3] == "" {
+			http.Error(w, "invalid URL: should be /isumid/reproduce/[ulid]", http.StatusBadRequest)
 			return
 		}
-		ulid := parts[2]
+		ulid := parts[3]
 
 		// fetch recorded data
 		savedRequestBody, err := s.storage.FetchReqBody(ulid)
