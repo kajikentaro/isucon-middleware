@@ -7,6 +7,7 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
@@ -29,7 +30,16 @@ func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
-	saved, err := h.service.FetchAll()
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+	if err != nil {
+		outputErr(w, err, http.StatusBadRequest)
+	}
+	length, err := strconv.Atoi(r.URL.Query().Get("length"))
+	if err != nil {
+		outputErr(w, err, http.StatusBadRequest)
+	}
+
+	saved, err := h.service.FetchAll(offset, length)
 	if err != nil {
 		outputErr(w, err, http.StatusInternalServerError)
 		return

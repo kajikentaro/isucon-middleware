@@ -141,14 +141,20 @@ func (s Storage) FetchMeta(ulid string) (Meta, error) {
 	return meta, nil
 }
 
-func (s Storage) FetchAllMeta() ([]Meta, error) {
+func (s Storage) FetchMetaList(offset, length int) ([]Meta, error) {
 	fileList, err := os.ReadDir(s.OutputDir)
 	if err != nil {
 		return nil, err
 	}
 
 	res := []Meta{}
-	for _, file := range fileList {
+	for idx, file := range fileList {
+		if idx < offset {
+			continue
+		}
+		if offset+length <= idx {
+			break
+		}
 		if file.IsDir() {
 			continue
 		}

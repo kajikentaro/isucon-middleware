@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -94,7 +95,16 @@ func TestRecord(t *testing.T) {
 }
 
 func TestFetchAll(t *testing.T) {
-	res, err := http.Get("http://localhost:8888/isumid/all")
+	u, err := url.Parse("http://localhost:8888/isumid/all")
+	if err != nil {
+		t.Fatal(err)
+	}
+	q := u.Query()
+	q.Set("offset", "0")
+	q.Set("length", "1")
+	u.RawQuery = q.Encode()
+
+	res, err := http.Get(u.String())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +150,16 @@ func TestFetchAll(t *testing.T) {
 }
 
 func fetchFirstUlid() (string, error) {
-	res, err := http.Get("http://localhost:8888/isumid/all")
+	u, err := url.Parse("http://localhost:8888/isumid/all")
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	q.Set("offset", "0")
+	q.Set("length", "1")
+	u.RawQuery = q.Encode()
+
+	res, err := http.Get(u.String())
 	if err != nil {
 		return "", err
 	}

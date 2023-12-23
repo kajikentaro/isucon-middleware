@@ -82,7 +82,7 @@ func TestFetchAllMeta(t *testing.T) {
 	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
-	actual, err := storage.FetchAllMeta()
+	actual, err := storage.FetchMetaList(0, 1)
 	if err != nil {
 		t.Fatal(err)
 	}

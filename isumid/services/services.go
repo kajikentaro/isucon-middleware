@@ -22,8 +22,8 @@ func New(storage storages.Storage) Service {
 	return Service{storage: storage}
 }
 
-func (s Service) FetchAll() ([]RecordedTransaction, error) {
-	MetaList, err := s.storage.FetchAllMeta()
+func (s Service) FetchAll(offset, length int) ([]RecordedTransaction, error) {
+	MetaList, err := s.storage.FetchMetaList(offset, length)
 	if err != nil {
 		return nil, err
 	}
