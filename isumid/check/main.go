@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/kajikentaro/isucon-middleware/isumid"
-	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/labstack/echo/v4"
 )
 
@@ -25,7 +24,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	echo.New()
-	rec := isumid.New(models.Setting{OutputDir: "/tmp/hoge"})
+	rec := isumid.New(nil)
 
 	http.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
 	err := http.ListenAndServe(":8080", nil)

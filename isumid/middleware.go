@@ -31,13 +31,17 @@ func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	return mux
 }
 
-func New(options models.Setting) Recorder {
+func New(options *models.Setting) Recorder {
 	def := models.Setting{
 		OutputDir: filepath.Join(os.TempDir(), "request-record-middleware"),
 	}
 
-	if options.OutputDir == "" {
-		options.OutputDir = def.OutputDir
+	if options == nil {
+		options = &def
+	} else {
+		if options.OutputDir == "" {
+			options.OutputDir = def.OutputDir
+		}
 	}
 
 	err := os.MkdirAll(options.OutputDir, 0777)
@@ -46,7 +50,7 @@ func New(options models.Setting) Recorder {
 	}
 
 	// DI
-	storage := storages.New(options)
+	storage := storages.New(*options)
 
 	ser := services.New(storage)
 	han := handlers.New(ser)

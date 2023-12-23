@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("test dir:", OUTPUT_DIR)
 
 	// prepare server
-	rec := isumid.New(models.Setting{OutputDir: OUTPUT_DIR})
+	rec := isumid.New(&models.Setting{OutputDir: OUTPUT_DIR})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
 	srv := &http.Server{Addr: ":8888", Handler: mux}
