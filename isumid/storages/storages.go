@@ -2,6 +2,8 @@ package storages
 
 import (
 	"fmt"
+	"io/fs"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -60,6 +62,13 @@ func IsText(header map[string][]string) bool {
 	return false
 }
 
+func genUlidStr() string {
+	t := time.Now()
+	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
+	id := ulid.MustNew(ulid.Timestamp(t), entropy)
+	return id.String()
+}
+
 func (s Storage) Save(data RecordedDataInput) error {
 	err := os.MkdirAll(s.OutputDir, 0777)
 	if err != nil {
@@ -67,11 +76,7 @@ func (s Storage) Save(data RecordedDataInput) error {
 	}
 
 	// generate ulid
-	ulid, err := ulid.New(ulid.Timestamp(time.Now()), nil)
-	if err != nil {
-		return err
-	}
-	ulidStr := ulid.String()
+	ulidStr := genUlidStr()
 
 	// save metadata
 	{
@@ -147,19 +152,24 @@ func (s Storage) FetchMetaList(offset, length int) ([]Meta, error) {
 		return nil, err
 	}
 
-	res := []Meta{}
-	for idx, file := range fileList {
-		if idx < offset {
-			continue
-		}
-		if offset+length <= idx {
-			break
-		}
+	metaList := []fs.DirEntry{}
+	for _, file := range fileList {
 		if file.IsDir() {
 			continue
 		}
 		if filepath.Ext(file.Name()) != ".meta" {
 			continue
+		}
+		metaList = append(metaList, file)
+	}
+
+	res := []Meta{}
+	for idx, file := range metaList {
+		if idx < offset {
+			continue
+		}
+		if offset+length <= idx {
+			break
 		}
 
 		data, err := os.ReadFile(filepath.Join(s.OutputDir, file.Name()))

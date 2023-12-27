@@ -22,7 +22,7 @@ func New(storage storages.Storage) Service {
 	return Service{storage: storage}
 }
 
-func (s Service) FetchAll(offset, length int) ([]RecordedTransaction, error) {
+func (s Service) FetchList(offset, length int) ([]RecordedTransaction, error) {
 	MetaList, err := s.storage.FetchMetaList(offset, length)
 	if err != nil {
 		return nil, err

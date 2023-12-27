@@ -77,7 +77,7 @@ func TestFetchMeta(t *testing.T) {
 	assert.Exactly(t, expected, actual)
 }
 
-func TestFetchAllMeta(t *testing.T) {
+func TestFetchMetaList(t *testing.T) {
 	// prepare storage
 	setting := models.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)

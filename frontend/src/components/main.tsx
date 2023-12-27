@@ -11,8 +11,12 @@ import {
   setRecordedTransactionList,
 } from "@/store/recorded-transaction";
 import { RecordedTransaction } from "@/types";
-import { getFetchAllUrl } from "@/utils/get-url";
-import { MouseEvent, useEffect, useState } from "react";
+import { getFetchListUrl } from "@/utils/get-url";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { MouseEvent, useEffect, useMemo, useState } from "react";
+
+const MAX_ROW_LENGTH = 20;
 
 export default function Main() {
   const dispatch = useAppDispatch();
@@ -22,8 +26,20 @@ export default function Main() {
 
   const [selected, setSelected] = useState<boolean[]>([]);
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(true);
 
   const onExecuteChecked = useExecuteChecked();
+
+  const searchParams = useSearchParams();
+  const currentPageNum = useMemo(() => {
+    const page = searchParams.get("page") || "1";
+
+    const pageInt = Number(page);
+    if (isNaN(pageInt)) {
+      return 1;
+    }
+    return pageInt;
+  }, [searchParams]);
 
   const isAllSelected = selected.every((s) => s) && selected.length > 0;
 
@@ -54,8 +70,10 @@ export default function Main() {
     event.stopPropagation();
   };
 
-  const fetchData = async () => {
-    const response = await fetch(getFetchAllUrl(), {});
+  const fetchData = async (page: number) => {
+    const response = await fetch(
+      getFetchListUrl((page - 1) * MAX_ROW_LENGTH, MAX_ROW_LENGTH)
+    );
     const json: RecordedTransaction[] = await response.json();
     dispatch(setRecordedTransactionList(json));
 
@@ -66,12 +84,13 @@ export default function Main() {
     dispatch(setExecutionProgressAll(progressMap));
 
     setSelected(Array(json.length).fill(true));
+    setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(currentPageNum);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams]);
 
   return (
     <div className="flex flex-col justify-center items-center">
@@ -127,6 +146,31 @@ export default function Main() {
           ))}
         </tbody>
       </table>
+      {isLoading && <p>now loading</p>}
+      {!isLoading && recordedTransactionUlids.length === 0 && (
+        <p>result was not found</p>
+      )}
+
+      {currentPageNum !== 1 && (
+        <Link
+          href={{
+            query: { page: currentPageNum - 1 },
+          }}
+          onClick={() => fetchData(currentPageNum + 1)}
+        >
+          Previous
+        </Link>
+      )}
+      {recordedTransactionUlids.length === MAX_ROW_LENGTH && (
+        <Link
+          href={{
+            query: { page: currentPageNum + 1 },
+          }}
+          onClick={() => fetchData(currentPageNum + 1)}
+        >
+          Next
+        </Link>
+      )}
     </div>
   );
 }

@@ -94,8 +94,8 @@ func TestRecord(t *testing.T) {
 	}
 }
 
-func TestFetchAll(t *testing.T) {
-	u, err := url.Parse("http://localhost:8888/isumid/all")
+func TestFetchList(t *testing.T) {
+	u, err := url.Parse("http://localhost:8888/isumid/list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,7 +150,7 @@ func TestFetchAll(t *testing.T) {
 }
 
 func fetchFirstUlid() (string, error) {
-	u, err := url.Parse("http://localhost:8888/isumid/all")
+	u, err := url.Parse("http://localhost:8888/isumid/list")
 	if err != nil {
 		return "", err
 	}

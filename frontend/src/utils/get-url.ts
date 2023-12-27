@@ -5,15 +5,15 @@ if (!ENDPOINT_URL) {
 }
 
 export function getReproduceUrl(ulid: string) {
-  return `${ENDPOINT_URL}reproduce/${ulid}`;
+  return `${ENDPOINT_URL}isumid/reproduce/${ulid}`;
 }
 
-export function getFetchAllUrl() {
-  return `${ENDPOINT_URL}all`;
+export function getFetchListUrl(offset: number, length: number) {
+  return `${ENDPOINT_URL}isumid/list?offset=${offset}&length=${length}`;
 }
 
 export type BodyType = "req-body" | "res-body" | "reproduced-res-body";
 
 export function getBodyUrl(type: BodyType, ulid: string) {
-  return `${ENDPOINT_URL}${type}/${ulid}`;
+  return `${ENDPOINT_URL}isumid/${type}/${ulid}`;
 }

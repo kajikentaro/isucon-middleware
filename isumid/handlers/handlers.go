@@ -3,6 +3,7 @@ package handlers
 import (
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime"
 	"net/http"
@@ -26,20 +27,31 @@ func outputErr(w http.ResponseWriter, err error, statusCode int) {
 	http.Error(w, message, statusCode)
 }
 
-func (h Handler) FetchAll(w http.ResponseWriter, r *http.Request) {
+func (h Handler) FetchList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 
+	if r.URL.Query().Get("offset") == "" {
+		outputErr(w, errors.New("query parameter 'offset' is not defined"), http.StatusBadRequest)
+		return
+	}
 	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
 	if err != nil {
 		outputErr(w, err, http.StatusBadRequest)
+		return
+	}
+
+	if r.URL.Query().Get("length") == "" {
+		outputErr(w, errors.New("query parameter 'length' is not defined"), http.StatusBadRequest)
+		return
 	}
 	length, err := strconv.Atoi(r.URL.Query().Get("length"))
 	if err != nil {
 		outputErr(w, err, http.StatusBadRequest)
+		return
 	}
 
-	saved, err := h.service.FetchAll(offset, length)
+	saved, err := h.service.FetchList(offset, length)
 	if err != nil {
 		outputErr(w, err, http.StatusInternalServerError)
 		return
