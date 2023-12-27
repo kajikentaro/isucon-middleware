@@ -54,9 +54,11 @@ func IsText(header map[string][]string) bool {
 		return false
 	}
 	contentTypeText := []string{"text/plain", "text/csv", "text/html", "text/css", "text/javascript", "application/json", "application/x-www-form-urlencoded"}
-	for _, c := range contentTypeText {
-		if contentType[0] == c {
-			return true
+	for _, a := range contentTypeText {
+		for _, b := range contentType {
+			if a == b {
+				return true
+			}
 		}
 	}
 	return false
