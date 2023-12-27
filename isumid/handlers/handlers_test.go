@@ -29,24 +29,24 @@ func TestGetUlidFromPath(t *testing.T) {
 
 func TestGetFilePathFromUrlPath(t *testing.T) {
 	expected := "Sample/Path"
-	actual, err := getFilePathFromUrlPath("/isumid/SampleEndpoint/Sample/Path")
+	actual, err := getFilePathFromUrlPath("/isumid/Sample/Path")
 	if err != "" {
 		t.Fatal(err)
 	}
 	assert.Equal(t, expected, actual)
 
 	expected = "SamplePath/"
-	actual, err = getFilePathFromUrlPath("/isumid/SampleEndpoint/SamplePath/")
+	actual, err = getFilePathFromUrlPath("/isumid/SamplePath/")
 	if err != "" {
 		t.Fatal(err)
 	}
 	assert.Equal(t, expected, actual)
 
-	expectedError := "invalid URL: /isumid/SampleEndpoint/, should be /isumid/SampleEndpoint/[file path]"
-	_, actualError := getFilePathFromUrlPath("/isumid/SampleEndpoint/")
+	expectedError := "invalid URL: /isumid/, should be /isumid/[file path]"
+	_, actualError := getFilePathFromUrlPath("/isumid/")
 	assert.Equal(t, expectedError, actualError)
 
-	expectedError = "invalid URL: /isumid/"
-	_, actualError = getFilePathFromUrlPath("/isumid/")
+	expectedError = "invalid URL: /fuga"
+	_, actualError = getFilePathFromUrlPath("/fuga")
 	assert.Equal(t, expectedError, actualError)
 }

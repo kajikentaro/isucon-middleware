@@ -153,30 +153,32 @@ func (h Handler) Frontend(w http.ResponseWriter, r *http.Request) {
 
 // ex) input: /isumid/path_name/12345abcde -> output: 12345abcde
 func getUlidFromPath(path string) (string, errorMessage string) {
+	const ANS_IDX = 4
 	parts := strings.Split(path, "/")
-	if len(parts) > 4 {
-		err := fmt.Sprintf("invalid URL: %s, should be %s/[ulid]", path, strings.Join(parts[:3], "/"))
+	if len(parts) > ANS_IDX {
+		err := fmt.Sprintf("invalid URL: %s, should be %s/[ulid]", path, strings.Join(parts[:ANS_IDX-1], "/"))
 		return "", err
 	}
-	if len(parts) < 4 {
+	if len(parts) < ANS_IDX {
 		return "", fmt.Sprintf("invalid URL: %s", path)
 	}
-	if len(parts) == 4 && parts[3] != "" {
-		return parts[3], ""
+	if len(parts) == ANS_IDX && parts[ANS_IDX-1] != "" {
+		return parts[ANS_IDX-1], ""
 	}
-	err := fmt.Sprintf("invalid URL: %s, should be %s/[ulid]", path, strings.Join(parts[:3], "/"))
+	err := fmt.Sprintf("invalid URL: %s, should be %s/[ulid]", path, strings.Join(parts[:ANS_IDX-1], "/"))
 	return "", err
 }
 
 // ex) input: /isumid/path_name/ab/cd/ef -> output: ab/cd/ef
 func getFilePathFromUrlPath(path string) (string, errorMessage string) {
+	const ANS_IDX = 3
 	parts := strings.Split(path, "/")
-	if len(parts) < 4 {
+	if len(parts) < ANS_IDX {
 		return "", fmt.Sprintf("invalid URL: %s", path)
 	}
-	if len(parts) >= 4 && parts[3] != "" {
-		return strings.Join(parts[3:], "/"), ""
+	if len(parts) >= ANS_IDX && parts[ANS_IDX-1] != "" {
+		return strings.Join(parts[ANS_IDX-1:], "/"), ""
 	}
-	err := fmt.Sprintf("invalid URL: %s, should be %s/[file path]", path, strings.Join(parts[:3], "/"))
+	err := fmt.Sprintf("invalid URL: %s, should be %s/[file path]", path, strings.Join(parts[:ANS_IDX-1], "/"))
 	return "", err
 }
