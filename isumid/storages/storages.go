@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"math/rand"
+	"mime"
 	"os"
 	"path/filepath"
 	"time"
@@ -46,17 +47,20 @@ func New(setting models.Setting) Storage {
 }
 
 func IsText(header map[string][]string) bool {
+	mediaTypeExpected := []string{"text/plain", "text/csv", "text/html", "text/css", "text/javascript", "application/json", "application/x-www-form-urlencoded"}
+
 	contentType, ok := header["Content-Type"]
 	if !ok {
 		return false
 	}
-	if len(contentType) >= 2 || len(contentType) <= 0 {
-		return false
-	}
-	contentTypeText := []string{"text/plain", "text/csv", "text/html", "text/css", "text/javascript", "application/json", "application/x-www-form-urlencoded"}
-	for _, a := range contentTypeText {
-		for _, b := range contentType {
-			if a == b {
+	for _, c := range contentType {
+		mediaTypeActual, _, err := mime.ParseMediaType(c)
+		if err != nil {
+			continue
+		}
+
+		for _, e := range mediaTypeExpected {
+			if mediaTypeActual == e {
 				return true
 			}
 		}

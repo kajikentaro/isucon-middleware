@@ -177,3 +177,41 @@ func TestFetchReproducedBody(t *testing.T) {
 	expected := []byte("Test Reproduced Body")
 	assert.Exactly(t, expected, actual)
 }
+
+func TestIsText(t *testing.T) {
+	{
+		actual := IsText(map[string][]string{
+			"foo": {"bar"},
+		})
+		expected := false
+
+		assert.Equal(t, expected, actual)
+	}
+
+	{
+		actual := IsText(map[string][]string{
+			"Content-Type": {"text/html; charset=utf-8"},
+		})
+		expected := true
+
+		assert.Equal(t, expected, actual)
+	}
+
+	{
+		actual := IsText(map[string][]string{
+			"Content-Type": {"text/html", "charset=utf-8"},
+		})
+		expected := true
+
+		assert.Equal(t, expected, actual)
+	}
+
+	{
+		actual := IsText(map[string][]string{
+			"Content-Type": {"video/mp4", "text/html"},
+		})
+		expected := true
+
+		assert.Equal(t, expected, actual)
+	}
+}
