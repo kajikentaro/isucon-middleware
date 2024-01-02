@@ -17,7 +17,7 @@ func (n ReadCloser) Close() error {
 
 type ResponseWriter struct {
 	original    http.ResponseWriter
-	writtenData *[]byte
+	writtenData *bytes.Buffer
 	statusCode  *int
 }
 
@@ -25,7 +25,7 @@ func (r ResponseWriter) Header() http.Header {
 	return r.original.Header()
 }
 func (r ResponseWriter) Write(in []byte) (int, error) {
-	*r.writtenData = append(*r.writtenData, in...)
+	r.writtenData.Write(in)
 	return r.original.Write(in)
 }
 func (r ResponseWriter) WriteHeader(statusCode int) {

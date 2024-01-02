@@ -24,21 +24,28 @@ func New(storage storages.Storage) Middleware {
 func (s Middleware) Recorder(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// prepare to read request body
-		var sniffer bytes.Buffer
+		var reqBodySniffer bytes.Buffer
 		newBody := ReadCloser{
-			Reader:        io.TeeReader(r.Body, &sniffer),
+			Reader:        io.TeeReader(r.Body, &reqBodySniffer),
 			originalClose: r.Body.Close,
 		}
 		r.Body = newBody
 
 		// prepare to read response body
+		var resBodySniffer bytes.Buffer
 		statusCode := 200
-		newW := ResponseWriter{original: w, writtenData: &[]byte{}, statusCode: &statusCode}
+		newW := ResponseWriter{original: w, writtenData: &resBodySniffer, statusCode: &statusCode}
 
 		// go to original handler
 		next.ServeHTTP(newW, r)
 
-		reqBody, err := io.ReadAll(&sniffer)
+		reqBody, err := io.ReadAll(&reqBodySniffer)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to read ReqBodyData")
+			return
+		}
+
+		resBody, err := io.ReadAll(&resBodySniffer)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to read ReqBodyData")
 			return
@@ -51,7 +58,7 @@ func (s Middleware) Recorder(next http.Handler) http.Handler {
 			ReqBody:    reqBody,
 			StatusCode: statusCode,
 			ResHeader:  newW.Header(),
-			ResBody:    *newW.writtenData,
+			ResBody:    resBody,
 		}
 		err = s.storage.Save(saveData)
 		if err != nil {
