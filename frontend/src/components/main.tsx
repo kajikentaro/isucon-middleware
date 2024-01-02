@@ -157,6 +157,7 @@ export default function Main() {
             query: { page: currentPageNum - 1 },
           }}
           onClick={() => fetchData(currentPageNum + 1)}
+          className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
         >
           Previous
         </Link>
@@ -167,6 +168,7 @@ export default function Main() {
             query: { page: currentPageNum + 1 },
           }}
           onClick={() => fetchData(currentPageNum + 1)}
+          className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
         >
           Next
         </Link>
