@@ -25,7 +25,7 @@ func (r ResponseWriter) Header() http.Header {
 	return r.original.Header()
 }
 func (r ResponseWriter) Write(in []byte) (int, error) {
-	*r.writtenData = in
+	*r.writtenData = append(*r.writtenData, in...)
 	return r.original.Write(in)
 }
 func (r ResponseWriter) WriteHeader(statusCode int) {
