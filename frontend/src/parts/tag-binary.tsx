@@ -48,6 +48,7 @@ export function TagBinary({ type, ulid, className, contentLength }: Props) {
         e.stopPropagation();
       }}
       className={`inline-flex ${className ? className : ""}`}
+      prefetch={false}
     >
       <span className="bg-green-500 text-white py-1 px-2 text-xs rounded-full block w-fit">
         binary data {normalizeContentLength(contentLength)}

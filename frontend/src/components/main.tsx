@@ -151,28 +151,32 @@ export default function Main() {
         <p>result was not found</p>
       )}
 
-      {currentPageNum !== 1 && (
-        <Link
-          href={{
-            query: { page: currentPageNum - 1 },
-          }}
-          onClick={() => fetchData(currentPageNum + 1)}
-          className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
-        >
-          Previous
-        </Link>
-      )}
-      {recordedTransactionUlids.length === MAX_ROW_LENGTH && (
-        <Link
-          href={{
-            query: { page: currentPageNum + 1 },
-          }}
-          onClick={() => fetchData(currentPageNum + 1)}
-          className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
-        >
-          Next
-        </Link>
-      )}
+      <div className="flex flex-row">
+        {currentPageNum !== 1 && (
+          <Link
+            href={{
+              query: { page: currentPageNum - 1 },
+            }}
+            onClick={() => fetchData(currentPageNum + 1)}
+            className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
+            prefetch={false}
+          >
+            Previous
+          </Link>
+        )}
+        {recordedTransactionUlids.length === MAX_ROW_LENGTH && (
+          <Link
+            href={{
+              query: { page: currentPageNum + 1 },
+            }}
+            onClick={() => fetchData(currentPageNum + 1)}
+            className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
+            prefetch={false}
+          >
+            Next
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
