@@ -1,4 +1,4 @@
-import { BodyType, getBodyUrl } from "@/utils/get-url";
+import { BodyType, getBodyPath } from "@/utils/get-url";
 import Link from "next/link";
 
 interface Props {
@@ -43,7 +43,7 @@ function normalizeContentLength(contentLength?: string[] | string): string {
 export function TagBinary({ type, ulid, className, contentLength }: Props) {
   return (
     <Link
-      href={getBodyUrl(type, ulid)}
+      href={getBodyPath(type, ulid)}
       onClick={(e) => {
         e.stopPropagation();
       }}

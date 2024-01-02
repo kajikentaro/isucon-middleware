@@ -14,6 +14,11 @@ export function getFetchListUrl(offset: number, length: number) {
 
 export type BodyType = "req-body" | "res-body" | "reproduced-res-body";
 
-export function getBodyUrl(type: BodyType, ulid: string) {
+export function getBodyPath(type: BodyType, ulid: string) {
+  if (process.env.NODE_ENV === "production") {
+    // we don't need 'isumid' prefix as Next.js automatically add it according to basePath
+    return `/${type}/${ulid}`;
+  }
+
   return `${ENDPOINT_URL}isumid/${type}/${ulid}`;
 }
