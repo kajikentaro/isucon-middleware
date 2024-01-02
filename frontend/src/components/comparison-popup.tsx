@@ -64,6 +64,7 @@ function ModalContents() {
         body={recordedTransaction.ReqBody}
         header={recordedTransaction.ReqHeader}
         isText={recordedTransaction.IsReqText}
+        contentLength={recordedTransaction.ReqLength}
       />
       <span className="mb-4 h-0.5 bg-gray-300 block" />
       <div className="flex justify-center">
@@ -75,6 +76,7 @@ function ModalContents() {
               body: recordedTransaction.ResBody,
               header: recordedTransaction.ResHeader,
               isText: recordedTransaction.IsResText,
+              contentLength: recordedTransaction.ResLength,
             }}
             type="res-body"
             title="Recorded Response"
@@ -88,6 +90,7 @@ function ModalContents() {
                 body: executionResponse.ActualResBody,
                 header: executionResponse.ActualResHeader,
                 isText: executionResponse.IsBodyText,
+                contentLength: executionResponse.ActualResLength,
               }}
               type="reproduced-res-body"
               title="Actual Response"
@@ -118,10 +121,11 @@ interface TransactionProps {
   body: string;
   header: Header;
   isText: boolean;
+  contentLength: number;
 }
 
 function Request(props: TransactionProps) {
-  const { header, isText, body, ulid } = props;
+  const { header, isText, body, ulid, contentLength } = props;
   return (
     <div className="p-4 rounded-md">
       <h3 className="text-lg font-semibold my-2"></h3>
@@ -139,7 +143,7 @@ function Request(props: TransactionProps) {
           ulid={ulid}
           type="req-body"
           className="mt-2"
-          contentLength={header["Content-Length"]}
+          contentLength={contentLength}
         />
       )}
     </div>
@@ -154,7 +158,7 @@ function Response(props: {
   const {
     type,
     title,
-    transaction: { header, statusCode, isText, body, ulid },
+    transaction: { header, statusCode, isText, body, ulid, contentLength },
   } = props;
   return (
     <div className="w-1/2 p-4 rounded-md mb-4">
@@ -177,7 +181,7 @@ function Response(props: {
           ulid={ulid}
           type={type}
           className="mt-2"
-          contentLength={header["Content-Length"]}
+          contentLength={contentLength}
         />
       )}
     </div>

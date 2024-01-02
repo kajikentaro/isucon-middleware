@@ -9,6 +9,8 @@ export interface RecordedTransaction {
   Url: string;
   ReqHeader: Header;
   Method: string;
+  ReqLength: number;
+  ResLength: number
 }
 
 export interface ExecutionResponse {
@@ -19,6 +21,7 @@ export interface ExecutionResponse {
   ActualResBody: string;
   IsBodyText: boolean;
   StatusCode: number;
+  ActualResLength: number;
 }
 
 export type Header = { [key: string]: string[] };

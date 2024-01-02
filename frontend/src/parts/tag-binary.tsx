@@ -5,24 +5,11 @@ interface Props {
   ulid: string;
   type: BodyType;
   className?: string;
-  contentLength?: string[] | string;
+  contentLength: number;
 }
 
-function normalizeContentLength(contentLength?: string[] | string): string {
-  let bytes = "";
-  if (!contentLength) {
-    return "";
-  }
-  if (Array.isArray(contentLength)) {
-    if (contentLength.length === 0) {
-      return "";
-    }
-    bytes = contentLength[0];
-  } else {
-    bytes = contentLength;
-  }
-
-  const kb = Number(bytes) / 1024;
+function normalizeContentLength(contentLength: number): string {
+  const kb = Number(contentLength) / 1024;
   const mb = kb / 1024;
   const gb = mb / 1024;
   const tb = gb / 1024;
@@ -36,11 +23,19 @@ function normalizeContentLength(contentLength?: string[] | string): string {
   } else if (kb >= 1) {
     return kb.toFixed(2) + " KB";
   } else {
-    return bytes + " Bytes";
+    return contentLength + " Bytes";
   }
 }
 
 export function TagBinary({ type, ulid, className, contentLength }: Props) {
+  if (contentLength === 0) {
+    return (
+      <span className="border border-gray-300 text-xs py-1 px-2 text-gray-500 rounded-full block w-fit">
+        empty
+      </span>
+    );
+  }
+
   return (
     <Link
       href={getBodyPath(type, ulid)}
@@ -51,7 +46,7 @@ export function TagBinary({ type, ulid, className, contentLength }: Props) {
       prefetch={false}
     >
       <span className="bg-green-500 text-white py-1 px-2 text-xs rounded-full block w-fit">
-        binary data {normalizeContentLength(contentLength)}
+        binary data {contentLength ? normalizeContentLength(contentLength) : ""}
       </span>
     </Link>
   );

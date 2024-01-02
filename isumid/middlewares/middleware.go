@@ -125,6 +125,7 @@ func (s Middleware) Reproducer(next http.Handler) http.Handler {
 			ActualResBody    string
 			IsBodyText       bool
 			StatusCode       int
+			ActualResLength  int
 		}{
 			IsSameResBody:    bytes.Equal(actualResBody, savedResponseBody),
 			IsSameResHeader:  reflect.DeepEqual(actualHeader, savedMeta.ResHeader),
@@ -132,6 +133,7 @@ func (s Middleware) Reproducer(next http.Handler) http.Handler {
 			IsBodyText:       storages.IsText(newResponse.Header(), actualResBody),
 			ActualResHeader:  actualHeader,
 			StatusCode:       statusCode,
+			ActualResLength:  len(actualResBody),
 		}
 
 		if res.IsBodyText {

@@ -40,6 +40,8 @@ type Meta struct {
 
 	IsReqText bool
 	IsResText bool
+	ReqLength int
+	ResLength int
 	Ulid      string
 }
 
@@ -103,6 +105,8 @@ func (s Storage) Save(data RecordedDataInput) error {
 			IsReqText:  IsText(data.ReqHeader, data.ReqBody),
 			IsResText:  IsText(data.ResHeader, data.ResBody),
 			Ulid:       ulidStr,
+			ReqLength:  len(data.ReqBody),
+			ResLength:  len(data.ResBody),
 		}
 		data, err := msgpack.Marshal(meta)
 		if err != nil {

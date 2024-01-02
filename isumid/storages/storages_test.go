@@ -73,6 +73,8 @@ func TestFetchMeta(t *testing.T) {
 		IsReqText:  false,
 		IsResText:  true,
 		Ulid:       ulid,
+		ReqLength:  17,
+		ResLength:  18,
 	}
 	assert.Exactly(t, expected, actual)
 }
@@ -98,6 +100,8 @@ func TestFetchMetaList(t *testing.T) {
 		IsReqText:  false,
 		IsResText:  true,
 		Ulid:       "",
+		ReqLength:  17,
+		ResLength:  18,
 	}}
 	assert.Exactly(t, expected, actual)
 }

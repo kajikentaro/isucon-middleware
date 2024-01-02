@@ -143,6 +143,8 @@ func TestFetchList(t *testing.T) {
 			IsResText:  true,
 			StatusCode: 200,
 			Ulid:       "",
+			ReqLength:  11,
+			ResLength:  20,
 		},
 	}}
 
@@ -252,7 +254,7 @@ func TestReproduce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{"sample header":["sample header"]},"ActualResBody":"Hello World Response","IsBodyText":true,"StatusCode":200}`
+	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{"sample header":["sample header"]},"ActualResBody":"Hello World Response","IsBodyText":true,"StatusCode":200,"ActualResLength":20}`
 	actual := string(responseBody)
 	if expected != actual {
 		t.Fatalf("response body is not correct: expected %s, actual %s", expected, actual)

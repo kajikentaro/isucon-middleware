@@ -47,7 +47,7 @@ export default function TableRow(props: Props) {
           <TagBinary
             ulid={ulid}
             type="req-body"
-            contentLength={item.ReqHeader["Content-Length"]}
+            contentLength={item.ReqLength}
           />
         )}
       </td>
@@ -63,7 +63,7 @@ export default function TableRow(props: Props) {
           <TagBinary
             ulid={ulid}
             type="res-body"
-            contentLength={item.ResHeader["Content-Length"]}
+            contentLength={item.ResLength}
           />
         )}
       </td>
