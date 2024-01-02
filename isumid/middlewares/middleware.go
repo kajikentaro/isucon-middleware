@@ -122,7 +122,7 @@ func (s Middleware) Reproducer(next http.Handler) http.Handler {
 			IsSameResBody:    bytes.Equal(actualResBody, savedResponseBody),
 			IsSameResHeader:  reflect.DeepEqual(actualHeader, savedMeta.ResHeader),
 			IsSameStatusCode: statusCode == savedMeta.StatusCode,
-			IsBodyText:       storages.IsText(newResponse.Header()),
+			IsBodyText:       storages.IsText(newResponse.Header(), actualResBody),
 			ActualResHeader:  actualHeader,
 			StatusCode:       statusCode,
 		}

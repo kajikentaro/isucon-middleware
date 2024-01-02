@@ -125,7 +125,7 @@ func TestFetchList(t *testing.T) {
 	actual[0].Ulid = ""
 
 	expected := []services.RecordedTransaction{{
-		ResBody: "",
+		ResBody: "Hello World Response",
 		ReqBody: "Hello World",
 		Meta: storages.Meta{
 			Url: "/",
@@ -140,7 +140,7 @@ func TestFetchList(t *testing.T) {
 				"sample header": {"sample header"},
 			},
 			IsReqText:  true,
-			IsResText:  false,
+			IsResText:  true,
 			StatusCode: 200,
 			Ulid:       "",
 		},
@@ -252,7 +252,7 @@ func TestReproduce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{"sample header":["sample header"]},"ActualResBody":"","IsBodyText":false,"StatusCode":200}`
+	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{"sample header":["sample header"]},"ActualResBody":"Hello World Response","IsBodyText":true,"StatusCode":200}`
 	actual := string(responseBody)
 	if expected != actual {
 		t.Fatalf("response body is not correct: expected %s, actual %s", expected, actual)

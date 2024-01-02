@@ -182,7 +182,7 @@ func TestIsText(t *testing.T) {
 	{
 		actual := IsText(map[string][]string{
 			"foo": {"bar"},
-		})
+		}, nil)
 		expected := false
 
 		assert.Equal(t, expected, actual)
@@ -191,7 +191,7 @@ func TestIsText(t *testing.T) {
 	{
 		actual := IsText(map[string][]string{
 			"Content-Type": {"text/html; charset=utf-8"},
-		})
+		}, nil)
 		expected := true
 
 		assert.Equal(t, expected, actual)
@@ -200,7 +200,7 @@ func TestIsText(t *testing.T) {
 	{
 		actual := IsText(map[string][]string{
 			"Content-Type": {"text/html", "charset=utf-8"},
-		})
+		}, nil)
 		expected := true
 
 		assert.Equal(t, expected, actual)
@@ -209,7 +209,7 @@ func TestIsText(t *testing.T) {
 	{
 		actual := IsText(map[string][]string{
 			"Content-Type": {"video/mp4", "text/html"},
-		})
+		}, nil)
 		expected := true
 
 		assert.Equal(t, expected, actual)

@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"math/rand"
 	"mime"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -46,12 +47,15 @@ func New(setting models.Setting) Storage {
 	return Storage{Setting: setting}
 }
 
-func IsText(header map[string][]string) bool {
+func IsText(header map[string][]string, body []byte) bool {
 	mediaTypeExpected := []string{"text/plain", "text/csv", "text/html", "text/css", "text/javascript", "application/json", "application/x-www-form-urlencoded"}
 
 	contentType, ok := header["Content-Type"]
 	if !ok {
-		return false
+		if len(body) == 0 {
+			return false
+		}
+		contentType = []string{http.DetectContentType(body)}
 	}
 	for _, c := range contentType {
 		mediaTypeActual, _, err := mime.ParseMediaType(c)
@@ -96,8 +100,8 @@ func (s Storage) Save(data RecordedDataInput) error {
 			ReqHeader:  data.ReqHeader,
 			StatusCode: data.StatusCode,
 			ResHeader:  data.ResHeader,
-			IsReqText:  IsText(data.ReqHeader),
-			IsResText:  IsText(data.ResHeader),
+			IsReqText:  IsText(data.ReqHeader, data.ReqBody),
+			IsResText:  IsText(data.ResHeader, data.ResBody),
 			Ulid:       ulidStr,
 		}
 		data, err := msgpack.Marshal(meta)
