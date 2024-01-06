@@ -23,6 +23,7 @@ func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/isumid/start-recording", rec.middleware.StartRecording)
 	mux.HandleFunc("/isumid/stop-recording", rec.middleware.StopRecording)
+	mux.HandleFunc("/isumid/is-recording", rec.middleware.IsRecording)
 	mux.HandleFunc("/isumid/req-body/", rec.handler.FetchReqBody)
 	mux.HandleFunc("/isumid/res-body/", rec.handler.FetchResBody)
 	mux.HandleFunc("/isumid/reproduced-res-body/", rec.handler.FetchReproducedResBody)

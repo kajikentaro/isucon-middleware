@@ -44,6 +44,20 @@ func (s *Middleware) StopRecording(w http.ResponseWriter, r *http.Request) {
 	s.isRecording = false
 }
 
+func (s *Middleware) IsRecording(w http.ResponseWriter, r *http.Request) {
+	isRecording := struct{ IsRecording bool }{
+		IsRecording: s.isRecording,
+	}
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(isRecording)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to write requestBody: %#v", err), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (s *Middleware) StartRecording(w http.ResponseWriter, r *http.Request) {
 	s.isRecording = true
 }

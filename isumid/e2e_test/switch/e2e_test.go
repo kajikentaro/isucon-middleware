@@ -2,6 +2,7 @@ package test_e2e_switch
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -67,6 +68,27 @@ func TestDoNotRecordOnStart(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func fetchIsRecording(t *testing.T) bool {
+	res, err := http.Get("http://localhost:8888/isumid/is-recording")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal("status code is not 200")
+	}
+
+	// Decode JSON response into a Person struct
+	var isRecording struct {
+		IsRecording bool
+	}
+	err = json.NewDecoder(res.Body).Decode(&isRecording)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return isRecording.IsRecording
+}
+
 func TestStartAndStopRecording(t *testing.T) {
 	// start server
 	rec := isumid.New(&settings.Setting{
@@ -97,6 +119,7 @@ func TestStartAndStopRecording(t *testing.T) {
 		actual := len(utils.FetchList(t))
 		expected := previousExpected + 1
 		assert.Equal(t, expected, actual)
+		assert.Equal(t, true, fetchIsRecording(t))
 	}
 
 	{
@@ -117,6 +140,7 @@ func TestStartAndStopRecording(t *testing.T) {
 		actual := len(utils.FetchList(t))
 		expected := previousExpected
 		assert.Equal(t, expected, actual)
+		assert.Equal(t, false, fetchIsRecording(t))
 	}
 }
 
