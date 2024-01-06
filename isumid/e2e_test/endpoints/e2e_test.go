@@ -1,23 +1,19 @@
-package test_integration
+package test_e2e_endpoints
 
 import (
 	"bytes"
-	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid"
-	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
+	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,47 +24,14 @@ func TestMain(m *testing.M) {
 	fmt.Println("test dir:", OUTPUT_DIR)
 
 	// prepare server
-	rec := isumid.New(&models.Setting{OutputDir: OUTPUT_DIR})
+	rec := isumid.New(&settings.Setting{OutputDir: OUTPUT_DIR, RecordOnStart: true})
 	mux := http.NewServeMux()
-	mux.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
+	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
 	srv := &http.Server{Addr: ":8888", Handler: mux}
-	go func() {
-		err := srv.ListenAndServe()
-		if !errors.Is(err, http.ErrServerClosed) {
-			fmt.Fprintf(os.Stderr, "failed to start server: %s", err)
-			os.Exit(1)
-		}
-	}()
-	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		err := srv.Shutdown(ctx)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to shutdown server")
-			os.Exit(1)
-		}
-	}()
+	go utils.StartServer(srv)
+	defer utils.StopServer(srv)
 
 	m.Run()
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte((fmt.Sprintf("failed to read body: %s", err))))
-		return
-	}
-	res := string(b) + " Response"
-	_, err = w.Write([]byte(res))
-	if err != nil {
-		w.WriteHeader(500)
-		w.Write([]byte((fmt.Sprintf("failed to write body: %s", err))))
-	}
-
-	w.Header().Add("sample header", "sample header")
-
-	w.WriteHeader(200)
 }
 
 func TestRecord(t *testing.T) {
@@ -95,33 +58,7 @@ func TestRecord(t *testing.T) {
 }
 
 func TestFetchList(t *testing.T) {
-	u, err := url.Parse("http://localhost:8888/isumid/list")
-	if err != nil {
-		t.Fatal(err)
-	}
-	q := u.Query()
-	q.Set("offset", "0")
-	q.Set("length", "1")
-	u.RawQuery = q.Encode()
-
-	res, err := http.Get(u.String())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
-
-	responseBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	actual := []services.RecordedTransaction{}
-	err = json.Unmarshal(responseBody, &actual)
-	if err != nil {
-		t.Fatal(err)
-	}
+	actual := utils.FetchList(t)
 	actual[0].Ulid = ""
 
 	expected := []services.RecordedTransaction{{
@@ -151,42 +88,12 @@ func TestFetchList(t *testing.T) {
 	assert.Exactly(t, expected, actual)
 }
 
-func fetchFirstUlid() (string, error) {
-	u, err := url.Parse("http://localhost:8888/isumid/list")
-	if err != nil {
-		return "", err
-	}
-	q := u.Query()
-	q.Set("offset", "0")
-	q.Set("length", "1")
-	u.RawQuery = q.Encode()
-
-	res, err := http.Get(u.String())
-	if err != nil {
-		return "", err
-	}
-	if res.StatusCode != 200 {
-		return "", fmt.Errorf("status code is not 200")
-	}
-
-	responseBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		return "", err
-	}
-
-	actual := []services.RecordedTransaction{}
-	err = json.Unmarshal(responseBody, &actual)
-	if err != nil {
-		return "", err
-	}
-	return actual[0].Ulid, nil
+func fetchFirstUlid(t *testing.T) string {
+	return utils.FetchList(t)[0].Ulid
 }
 
 func TestFetchResBody(t *testing.T) {
-	ulid, err := fetchFirstUlid()
-	if err != nil {
-		t.Fatal(err)
-	}
+	ulid := fetchFirstUlid(t)
 
 	res, err := http.Get("http://localhost:8888/isumid/res-body/" + ulid)
 	if err != nil {
@@ -210,10 +117,7 @@ func TestFetchResBody(t *testing.T) {
 }
 
 func TestFetchReqBody(t *testing.T) {
-	ulid, err := fetchFirstUlid()
-	if err != nil {
-		t.Fatal(err)
-	}
+	ulid := fetchFirstUlid(t)
 
 	res, err := http.Get("http://localhost:8888/isumid/req-body/" + ulid)
 	if err != nil {
@@ -237,10 +141,7 @@ func TestFetchReqBody(t *testing.T) {
 }
 
 func TestReproduce(t *testing.T) {
-	ulid, err := fetchFirstUlid()
-	if err != nil {
-		t.Fatal(err)
-	}
+	ulid := fetchFirstUlid(t)
 
 	res, err := http.Get("http://localhost:8888/isumid/reproduce/" + ulid)
 	if err != nil {

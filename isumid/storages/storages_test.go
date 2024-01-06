@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +33,7 @@ func TestSave(t *testing.T) {
 	}
 
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	// test start
@@ -55,7 +55,7 @@ func getUlid(t *testing.T) string {
 
 func TestFetchMeta(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	ulid := getUlid(t)
@@ -81,7 +81,7 @@ func TestFetchMeta(t *testing.T) {
 
 func TestFetchMetaList(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	actual, err := storage.FetchMetaList(0, 1)
@@ -108,7 +108,7 @@ func TestFetchMetaList(t *testing.T) {
 
 func TestFetchReqBody(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	ulid := getUlid(t)
@@ -123,7 +123,7 @@ func TestFetchReqBody(t *testing.T) {
 
 func TestFetchResBody(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	ulid := getUlid(t)
@@ -138,7 +138,7 @@ func TestFetchResBody(t *testing.T) {
 
 func TestSaveReproduced(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	ulid := getUlid(t)
@@ -154,7 +154,7 @@ func TestSaveReproduced(t *testing.T) {
 
 func TestFetchReproducedHeader(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	ulid := getUlid(t)
@@ -169,7 +169,7 @@ func TestFetchReproducedHeader(t *testing.T) {
 
 func TestFetchReproducedBody(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	ulid := getUlid(t)

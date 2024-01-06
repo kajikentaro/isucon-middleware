@@ -8,8 +8,8 @@ import (
 
 	"github.com/kajikentaro/isucon-middleware/isumid/handlers"
 	"github.com/kajikentaro/isucon-middleware/isumid/middlewares"
-	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
+	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
@@ -21,6 +21,8 @@ type Recorder struct {
 
 func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/isumid/start-recording", rec.middleware.StartRecording)
+	mux.HandleFunc("/isumid/stop-recording", rec.middleware.StopRecording)
 	mux.HandleFunc("/isumid/req-body/", rec.handler.FetchReqBody)
 	mux.HandleFunc("/isumid/res-body/", rec.handler.FetchResBody)
 	mux.HandleFunc("/isumid/reproduced-res-body/", rec.handler.FetchReproducedResBody)
@@ -31,9 +33,10 @@ func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	return mux
 }
 
-func New(options *models.Setting) Recorder {
-	def := models.Setting{
-		OutputDir: filepath.Join(os.TempDir(), "request-record-middleware"),
+func New(options *settings.Setting) Recorder {
+	def := settings.Setting{
+		OutputDir:     filepath.Join(os.TempDir(), "isumid"),
+		RecordOnStart: true,
 	}
 
 	if options == nil {
@@ -55,7 +58,7 @@ func New(options *models.Setting) Recorder {
 	ser := services.New(storage)
 	han := handlers.New(ser)
 
-	mid := middlewares.New(storage)
+	mid := middlewares.New(storage, options)
 
 	return Recorder{handler: han, middleware: mid}
 }

@@ -9,20 +9,64 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
+	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
 type Middleware struct {
-	storage storages.Storage
+	storage     storages.Storage
+	isRecording bool
+	autoStop    *settings.AutoSwitch
+	autoStart   *settings.AutoSwitch
 }
 
-func New(storage storages.Storage) Middleware {
-	return Middleware{storage: storage}
+func New(storage storages.Storage, options *settings.Setting) Middleware {
+	isRecording := true
+	var autoStop *settings.AutoSwitch = nil
+	var autoStart *settings.AutoSwitch = nil
+	if options != nil {
+		isRecording = options.RecordOnStart
+		autoStop = options.AutoStop
+		autoStart = options.AutoStart
+	}
+
+	return Middleware{
+		storage:     storage,
+		isRecording: isRecording,
+		autoStop:    autoStop,
+		autoStart:   autoStart,
+	}
 }
 
-func (s Middleware) Recorder(next http.Handler) http.Handler {
+func (s *Middleware) StopRecording(w http.ResponseWriter, r *http.Request) {
+	s.isRecording = false
+}
+
+func (s *Middleware) StartRecording(w http.ResponseWriter, r *http.Request) {
+	s.isRecording = true
+}
+
+func (s *Middleware) Recorder(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.autoStart != nil && s.autoStart.TriggerEndpoint == r.URL.Path {
+			go func() {
+				time.Sleep(time.Second * time.Duration(s.autoStart.AfterSec))
+				s.isRecording = true
+			}()
+		}
+		if s.autoStop != nil && s.autoStop.TriggerEndpoint == r.URL.Path {
+			go func() {
+				time.Sleep(time.Second * time.Duration(s.autoStop.AfterSec))
+				s.isRecording = false
+			}()
+		}
+		if !s.isRecording {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// prepare to read request body
 		var reqBodySniffer bytes.Buffer
 		newBody := ReadCloser{
@@ -68,7 +112,7 @@ func (s Middleware) Recorder(next http.Handler) http.Handler {
 	})
 }
 
-func (s Middleware) Reproducer(next http.Handler) http.Handler {
+func (s *Middleware) Reproducer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// get ulid from path
 		parts := strings.Split(r.URL.Path, "/")

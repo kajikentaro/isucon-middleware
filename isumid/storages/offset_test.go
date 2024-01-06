@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 	"github.com/stretchr/testify/assert"
 )
@@ -26,7 +26,7 @@ func TestSave(t *testing.T) {
 	}
 
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := storages.New(setting)
 
 	// test start
@@ -40,7 +40,7 @@ func TestSave(t *testing.T) {
 
 func TestFetchMetaList(t *testing.T) {
 	// prepare storage
-	setting := models.Setting{OutputDir: OUTPUT_DIR}
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := storages.New(setting)
 
 	actual, err := storage.FetchMetaList(0, 2)

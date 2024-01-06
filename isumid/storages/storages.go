@@ -10,13 +10,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/oklog/ulid"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Storage struct {
-	models.Setting
+	settings.Setting
 }
 
 type RecordedDataInput struct {
@@ -45,7 +45,7 @@ type Meta struct {
 	Ulid      string
 }
 
-func New(setting models.Setting) Storage {
+func New(setting settings.Setting) Storage {
 	return Storage{Setting: setting}
 }
 
