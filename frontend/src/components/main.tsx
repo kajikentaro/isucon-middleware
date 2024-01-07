@@ -17,7 +17,7 @@ import { useSearchParams } from "next/navigation";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
 import StartRecordingButton from "./start-recording-button";
 
-const MAX_ROW_LENGTH = 20;
+const MAX_ROW_LENGTH = 100;
 
 export default function Main() {
   const dispatch = useAppDispatch();
