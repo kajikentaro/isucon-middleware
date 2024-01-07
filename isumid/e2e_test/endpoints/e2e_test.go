@@ -41,6 +41,7 @@ func TestRecord(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer res.Body.Close()
 	if res.StatusCode != 200 {
 		t.Fatal("status code is not 200")
 	}
