@@ -1,8 +1,8 @@
 "use client";
 import { useExecute } from "@/hooks/use-execute";
+import { useOpenPopup } from "@/hooks/use-open-popup";
 import { TagBinary } from "@/parts/tag-binary";
-import { showComparisonPopup } from "@/store/comparison-popup";
-import { useAppDispatch, useAppSelector } from "@/store/main";
+import { useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { MouseEvent } from "react";
 import ProgressIcon from "../parts/progress-icon";
@@ -18,14 +18,10 @@ export default function TableRow(props: Props) {
 
   const item = useAppSelector(selectRecordedTransaction(ulid));
   const onExecute = useExecute(item.Ulid);
-  const dispatch = useAppDispatch();
-
-  const onClickRow = () => {
-    dispatch(showComparisonPopup(ulid));
-  };
+  const openPopup = useOpenPopup(item.Ulid);
 
   return (
-    <tr className="border-b hover:bg-gray-100" onClick={onClickRow}>
+    <tr className="border-b hover:bg-gray-100" onClick={openPopup}>
       <td
         className="px-4 py-2 whitespace-nowrap"
         onClick={(e) => handleCheckboxClick(e)}
