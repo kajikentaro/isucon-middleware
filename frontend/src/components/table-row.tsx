@@ -34,7 +34,9 @@ export default function TableRow(props: Props) {
         />
       </td>
       <td className="px-4 py-2 whitespace-nowrap">{item.Method}</td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.Url}</td>
+      <td className="px-4 py-2 whitespace-nowrap max-w-lg overflow-hidden">
+        {item.Url}
+      </td>
       <td className="px-4 whitespace-nowrap overflow-hidden max-w-0">
         {item.IsReqText ? (
           <Code isInline>{item.ReqBody}</Code>
