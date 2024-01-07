@@ -19,7 +19,7 @@ type Recorder struct {
 	middleware middlewares.Middleware
 }
 
-func (rec Recorder) Middleware(next http.Handler) http.Handler {
+func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/isumid/start-recording", rec.middleware.StartRecording)
 	mux.HandleFunc("/isumid/stop-recording", rec.middleware.StopRecording)
@@ -34,7 +34,7 @@ func (rec Recorder) Middleware(next http.Handler) http.Handler {
 	return mux
 }
 
-func New(options *settings.Setting) Recorder {
+func New(options *settings.Setting) *Recorder {
 	def := settings.Setting{
 		OutputDir:     filepath.Join(os.TempDir(), "isumid"),
 		RecordOnStart: true,
@@ -61,5 +61,5 @@ func New(options *settings.Setting) Recorder {
 
 	mid := middlewares.New(storage, options)
 
-	return Recorder{handler: han, middleware: mid}
+	return &Recorder{handler: han, middleware: mid}
 }
