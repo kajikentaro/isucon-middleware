@@ -67,7 +67,7 @@ export default function TableRow(props: Props) {
           />
         )}
       </td>
-      <td className="px-4 py-2 whitespace-nowrap text-center">
+      <td className="px-4 whitespace-nowrap text-center">
         <ProgressIcon ulid={item.Ulid} />
       </td>
       <td className="px-4 whitespace-nowrap">

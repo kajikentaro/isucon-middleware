@@ -22,3 +22,14 @@ export function getBodyPath(type: BodyType, ulid: string) {
 
   return `${ENDPOINT_URL}isumid/${type}/${ulid}`;
 }
+
+export function getIsRecordingURL() {
+  return `${ENDPOINT_URL}isumid/is-recording`;
+}
+
+export function getStartRecordingURL() {
+  return `${ENDPOINT_URL}isumid/start-recording`;
+}
+export function getStopRecordingURL() {
+  return `${ENDPOINT_URL}isumid/stop-recording`;
+}

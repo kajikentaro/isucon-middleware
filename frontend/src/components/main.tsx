@@ -15,6 +15,7 @@ import { getFetchListUrl } from "@/utils/get-url";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MouseEvent, useEffect, useMemo, useState } from "react";
+import StartRecordingButton from "./start-recording-button";
 
 const MAX_ROW_LENGTH = 20;
 
@@ -96,18 +97,21 @@ export default function Main() {
     <div className="flex flex-col justify-center items-center">
       <div className="flex w-full justify-between px-4 py-3 mb-2">
         <h1 className="text-3xl font-bold">Isucon Middleware</h1>
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full flex items-center"
-          onClick={(e) => {
-            const checkedUlids = recordedTransactionUlids.filter(
-              (_, idx) => selected[idx]
-            );
-            onExecuteChecked(checkedUlids);
-            e.stopPropagation();
-          }}
-        >
-          Execute Checked
-        </button>
+        <div className="flex gap-x-5">
+          <StartRecordingButton />
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full flex items-center"
+            onClick={(e) => {
+              const checkedUlids = recordedTransactionUlids.filter(
+                (_, idx) => selected[idx]
+              );
+              onExecuteChecked(checkedUlids);
+              e.stopPropagation();
+            }}
+          >
+            Execute Checked
+          </button>
+        </div>
       </div>
       <table className="table-auto border-collapse w-full">
         <thead>

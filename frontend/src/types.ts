@@ -10,7 +10,7 @@ export interface RecordedTransaction {
   ReqHeader: Header;
   Method: string;
   ReqLength: number;
-  ResLength: number
+  ResLength: number;
 }
 
 export interface ExecutionResponse {
@@ -22,6 +22,10 @@ export interface ExecutionResponse {
   IsBodyText: boolean;
   StatusCode: number;
   ActualResLength: number;
+}
+
+export interface IsRecording {
+  IsRecording: boolean;
 }
 
 export type Header = { [key: string]: string[] };

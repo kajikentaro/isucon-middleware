@@ -41,6 +41,7 @@ func New(storage storages.Storage, options *settings.Setting) Middleware {
 }
 
 func (s *Middleware) StopRecording(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	s.isRecording = false
 }
 
@@ -59,6 +60,7 @@ func (s *Middleware) IsRecording(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Middleware) StartRecording(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	s.isRecording = true
 }
 
