@@ -1,3 +1,4 @@
+// this file is for debugging and testing Isucon Middleware
 package main
 
 import (
