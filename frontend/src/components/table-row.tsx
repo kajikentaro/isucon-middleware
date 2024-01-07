@@ -1,6 +1,7 @@
 "use client";
 import { useExecute } from "@/hooks/use-execute";
 import { useOpenPopup } from "@/hooks/use-open-popup";
+import Code from "@/parts/code";
 import { TagBinary } from "@/parts/tag-binary";
 import { useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
@@ -36,9 +37,7 @@ export default function TableRow(props: Props) {
       <td className="px-4 py-2 whitespace-nowrap">{item.Url}</td>
       <td className="px-4 whitespace-nowrap overflow-hidden max-w-0">
         {item.IsReqText ? (
-          <code className="bg-gray-700 text-white p-1 text-xs">
-            {item.ReqBody}
-          </code>
+          <Code isInline>{item.ReqBody}</Code>
         ) : (
           <TagBinary
             ulid={ulid}
@@ -52,9 +51,7 @@ export default function TableRow(props: Props) {
       </td>
       <td className="px-4 py-2 whitespace-nowrap overflow-hidden max-w-0">
         {item.IsResText ? (
-          <code className="bg-gray-700 text-white p-1 text-xs">
-            {item.ResBody}
-          </code>
+          <Code isInline>{item.ResBody}</Code>
         ) : (
           <TagBinary
             ulid={ulid}

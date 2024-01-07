@@ -1,5 +1,6 @@
 import { BodyType, getBodyPath } from "@/utils/get-url";
 import Link from "next/link";
+import TagEmpty from "./tag-empty";
 
 interface Props {
   ulid: string;
@@ -29,11 +30,7 @@ function normalizeContentLength(contentLength: number): string {
 
 export function TagBinary({ type, ulid, className, contentLength }: Props) {
   if (contentLength === 0) {
-    return (
-      <span className="border border-gray-300 text-xs py-1 px-2 text-gray-500 rounded-full block w-fit">
-        empty
-      </span>
-    );
+    return <TagEmpty />;
   }
 
   return (
