@@ -1,4 +1,5 @@
 import { useExecute } from "@/hooks/use-execute";
+import Code from "@/parts/code";
 import { TagBinary } from "@/parts/tag-binary";
 import {
   closeComparisonPopup,
@@ -130,14 +131,10 @@ function Request(props: TransactionProps) {
     <div className="p-4 rounded-md">
       <h3 className="text-lg font-semibold my-2"></h3>
       <p>Request Header:</p>
-      <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
-        {stringifyHeader(header)}
-      </code>
+      <Code>{stringifyHeader(header)}</Code>
       <p>Request Body:</p>
       {isText ? (
-        <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
-          {body}
-        </code>
+        <Code>{body}</Code>
       ) : (
         <TagBinary
           ulid={ulid}
@@ -164,18 +161,12 @@ function Response(props: {
     <div className="w-1/2 p-4 rounded-md mb-4">
       <h3 className="text-lg font-semibold my-2">{title}</h3>
       <p>Response Header:</p>
-      <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
-        {stringifyHeader(header)}
-      </code>
+      <Code>{stringifyHeader(header)}</Code>
       <p>Status Code:</p>
-      <code className="block bg-black text-white p-2 rounded-md my-2">
-        {statusCode}
-      </code>
+      <Code>{statusCode}</Code>
       <p>Response Body:</p>
       {isText ? (
-        <code className="block bg-black text-white p-2 rounded-md my-2 whitespace-pre-line">
-          {body}
-        </code>
+        <Code>{body}</Code>
       ) : (
         <TagBinary
           ulid={ulid}
