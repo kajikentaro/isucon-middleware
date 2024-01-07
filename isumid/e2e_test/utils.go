@@ -15,8 +15,8 @@ import (
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
 )
 
-func FetchList(t *testing.T) []services.RecordedTransaction {
-	u, err := url.Parse("http://localhost:8888/isumid/list")
+func FetchList(t *testing.T, portNum int) []services.RecordedTransaction {
+	u, err := url.Parse(fmt.Sprintf("http://localhost:%d/isumid/list", portNum))
 	if err != nil {
 		t.Fatal(err)
 	}

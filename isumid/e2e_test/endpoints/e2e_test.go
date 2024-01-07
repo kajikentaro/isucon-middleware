@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	rec := isumid.New(&settings.Setting{OutputDir: OUTPUT_DIR, RecordOnStart: true})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8888", Handler: mux}
+	srv := &http.Server{Addr: ":8081", Handler: mux}
 	go utils.StartServer(srv)
 	defer utils.StopServer(srv)
 
@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 func TestRecord(t *testing.T) {
 	// send request
 	requestBody := "Hello World"
-	res, err := http.Post("http://localhost:8888/", "text/plain", bytes.NewBufferString(requestBody))
+	res, err := http.Post("http://localhost:8081/", "text/plain", bytes.NewBufferString(requestBody))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +58,7 @@ func TestRecord(t *testing.T) {
 }
 
 func TestFetchList(t *testing.T) {
-	actual := utils.FetchList(t)
+	actual := utils.FetchList(t, 8081)
 	actual[0].Ulid = ""
 
 	expected := []services.RecordedTransaction{{
@@ -89,13 +89,13 @@ func TestFetchList(t *testing.T) {
 }
 
 func fetchFirstUlid(t *testing.T) string {
-	return utils.FetchList(t)[0].Ulid
+	return utils.FetchList(t, 8081)[0].Ulid
 }
 
 func TestFetchResBody(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
-	res, err := http.Get("http://localhost:8888/isumid/res-body/" + ulid)
+	res, err := http.Get("http://localhost:8081/isumid/res-body/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestFetchResBody(t *testing.T) {
 func TestFetchReqBody(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
-	res, err := http.Get("http://localhost:8888/isumid/req-body/" + ulid)
+	res, err := http.Get("http://localhost:8081/isumid/req-body/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +143,7 @@ func TestFetchReqBody(t *testing.T) {
 func TestReproduce(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
-	res, err := http.Get("http://localhost:8888/isumid/reproduce/" + ulid)
+	res, err := http.Get("http://localhost:8081/isumid/reproduce/" + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
