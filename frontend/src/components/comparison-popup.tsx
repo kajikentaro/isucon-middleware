@@ -11,22 +11,60 @@ import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { Header } from "@/types";
 import { BodyType } from "@/utils/get-url";
 import { stringifyHeader } from "@/utils/stringify-header";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ComparisonPopup() {
   const popupState = useAppSelector(selectComparisonPopup);
-  const dispatch = useAppDispatch();
+
   if (!popupState.isVisible) {
     return null;
   }
 
-  const onClose = () => {
+  // split main content to avoid conditional call of useEffect
+  return <ComparisonPopupMain />;
+}
+
+function ComparisonPopupMain() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  useEffect(() => {
+    // close popup when browser back occurred
+    // NOTE: this useEffect should be enabled only if popup is showing
+    window.addEventListener("popstate", () => {
+      dispatch(closeComparisonPopup());
+    });
+    return () =>
+      window.addEventListener("popstate", () => {
+        dispatch(closeComparisonPopup());
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", closePopupOnEscapePressed);
+    return () => {
+      window.removeEventListener("keydown", closePopupOnEscapePressed);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const closePopup = () => {
+    router.back();
     dispatch(closeComparisonPopup());
+  };
+
+  const closePopupOnEscapePressed = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      closePopup();
+    }
   };
 
   return (
     <div
       className="fixed z-50 top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50 px-10 py-20"
-      onClick={onClose}
+      onClick={closePopup}
     >
       <div
         className="bg-white p-6 rounded-md w-full h-full overflow-y-auto"
@@ -35,7 +73,7 @@ export default function ComparisonPopup() {
         }}
       >
         <button
-          onClick={onClose}
+          onClick={closePopup}
           className="absolute top-30 right-20 text-gray-800 text-xl w-12 h-12 bg-slate-200 hover:opacity-80 rounded-full"
         >
           X
