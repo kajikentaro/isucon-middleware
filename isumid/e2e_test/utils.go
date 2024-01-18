@@ -16,7 +16,8 @@ import (
 )
 
 func FetchList(t *testing.T, portNum int) []services.RecordedTransaction {
-	u, err := url.Parse(fmt.Sprintf("http://localhost:%d/isumid/list", portNum))
+	requestUrl := GetUrlList(portNum).List
+	u, err := url.Parse(requestUrl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,4 +80,39 @@ func SampleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("sample header", "sample header")
+}
+
+type UrlList struct {
+	StartRecording    string
+	StopRecording     string
+	IsRecording       string
+	ReqBody           string
+	ResBody           string
+	Remove            string
+	RemoveAll         string
+	ReproducesResBody string
+	List              string
+	Reproduce         string
+
+	UrlPrefix string
+	UrlOrigin string
+}
+
+func GetUrlList(portNum int) UrlList {
+	prefix := fmt.Sprintf("http://localhost:%d/isumid", portNum)
+	res := UrlList{
+		StartRecording:    prefix + "/start-recording",
+		StopRecording:     prefix + "/stop-recording",
+		IsRecording:       prefix + "/is-recording",
+		ReqBody:           prefix + "/req-body/",
+		ResBody:           prefix + "/res-body/",
+		Remove:            prefix + "/remove/",
+		RemoveAll:         prefix + "/remove-all",
+		ReproducesResBody: prefix + "/reproduces-res-body/",
+		List:              prefix + "/list",
+		Reproduce:         prefix + "/reproduce/",
+		UrlPrefix:         prefix,
+		UrlOrigin:         fmt.Sprintf("http://localhost:%d", portNum),
+	}
+	return res
 }

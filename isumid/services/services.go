@@ -112,3 +112,20 @@ func (s Service) FetchReproducedResBody(ulid string) (FetchBodyResponse, error) 
 	}
 	return res, nil
 }
+
+func (s Service) Remove(ulid string) error {
+	return s.storage.Remove(ulid)
+}
+
+func (s Service) RemoveAll() error {
+	err := s.storage.RemoveDir()
+	if err != nil {
+		return err
+	}
+
+	err = s.storage.CreateDir()
+	if err != nil {
+		return err
+	}
+	return nil
+}

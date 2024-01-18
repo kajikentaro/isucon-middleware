@@ -26,6 +26,8 @@ func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 	mux.HandleFunc("/isumid/is-recording", rec.middleware.IsRecording)
 	mux.HandleFunc("/isumid/req-body/", rec.handler.FetchReqBody)
 	mux.HandleFunc("/isumid/res-body/", rec.handler.FetchResBody)
+	mux.HandleFunc("/isumid/remove/", rec.handler.Remove)
+	mux.HandleFunc("/isumid/remove-all/", rec.handler.RemoveAll)
 	mux.HandleFunc("/isumid/reproduced-res-body/", rec.handler.FetchReproducedResBody)
 	mux.HandleFunc("/isumid/list", rec.handler.FetchList)
 	mux.Handle("/isumid/reproduce/", rec.middleware.Reproducer(next))
@@ -35,26 +37,27 @@ func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 }
 
 func New(options *settings.Setting) *Recorder {
-	def := settings.Setting{
+	defaultSetting := settings.Setting{
 		OutputDir:     filepath.Join(os.TempDir(), "isumid"),
-		RecordOnStart: true,
+		RecordOnStart: false,
+		AutoStop:      nil,
+		AutoStart:     nil,
 	}
 
 	if options == nil {
-		options = &def
+		options = &defaultSetting
 	} else {
 		if options.OutputDir == "" {
-			options.OutputDir = def.OutputDir
+			options.OutputDir = defaultSetting.OutputDir
 		}
-	}
-
-	err := os.MkdirAll(options.OutputDir, 0777)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
 	}
 
 	// DI
 	storage := storages.New(*options)
+	if err := storage.CreateDir(); err != nil {
+		fmt.Fprintln(os.Stderr, "failed to create a directory", err.Error())
+		os.Exit(1)
+	}
 
 	ser := services.New(storage)
 	han := handlers.New(ser)

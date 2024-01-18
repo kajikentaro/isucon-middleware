@@ -259,3 +259,27 @@ func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]st
 	}
 	return nil
 }
+
+func (s Storage) CreateDir() error {
+	return os.MkdirAll(s.OutputDir, 0777)
+}
+
+func (s Storage) RemoveDir() error {
+	return os.RemoveAll(s.OutputDir)
+}
+
+func (s Storage) Remove(ulid string) error {
+	fileList, err := filepath.Glob(filepath.Join(s.OutputDir, ulid+"*"))
+	if err != nil {
+		return err
+	}
+
+	for _, filePath := range fileList {
+		err := os.Remove(filePath)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

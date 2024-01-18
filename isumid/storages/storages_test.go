@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -218,4 +219,26 @@ func TestIsText(t *testing.T) {
 
 		assert.Equal(t, expected, actual)
 	}
+}
+
+func TestRemove(t *testing.T) {
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	metaList, err := storage.FetchMetaList(0, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := storage.Remove(metaList[0].Ulid); err != nil {
+		t.Fatal(err)
+	}
+
+	actual, err := storage.FetchMetaList(0, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := metaList[1:]
+	assert.True(t, reflect.DeepEqual(actual, expected))
 }

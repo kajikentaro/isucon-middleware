@@ -18,6 +18,9 @@ import (
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
+var PORT_NUMBER = 8082
+var HTTP_ADDRESS = fmt.Sprintf(":%d", PORT_NUMBER)
+var URL_LIST = utils.GetUrlList(PORT_NUMBER)
 
 func TestMain(m *testing.M) {
 	fmt.Println("test dir:", OUTPUT_DIR)
@@ -32,16 +35,17 @@ func TestRecordOnStart(t *testing.T) {
 	})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8082", Handler: mux}
+	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
+	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
-	previousExpected := len(utils.FetchList(t, 8082))
+	previousExpected := len(utils.FetchList(t, PORT_NUMBER))
 
 	sendSampleRequest(t)
 
 	// fetch result
-	actual := len(utils.FetchList(t, 8082))
+	actual := len(utils.FetchList(t, PORT_NUMBER))
 	expected := previousExpected + 1
 	assert.Equal(t, expected, actual)
 }
@@ -54,22 +58,23 @@ func TestDoNotRecordOnStart(t *testing.T) {
 	})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8082", Handler: mux}
+	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
+	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
-	previousExpected := len(utils.FetchList(t, 8082))
+	previousExpected := len(utils.FetchList(t, PORT_NUMBER))
 
 	sendSampleRequest(t)
 
 	// fetch result
-	actual := len(utils.FetchList(t, 8082))
+	actual := len(utils.FetchList(t, PORT_NUMBER))
 	expected := previousExpected
 	assert.Equal(t, expected, actual)
 }
 
 func fetchIsRecording(t *testing.T) bool {
-	res, err := http.Get("http://localhost:8082/isumid/is-recording")
+	res, err := http.Get(URL_LIST.IsRecording)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,15 +102,16 @@ func TestStartAndStopRecording(t *testing.T) {
 	})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8082", Handler: mux}
+	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
+	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
 	{
 		previousExpected := len(utils.FetchList(t, 8082))
 
 		// turn on recording
-		res, err := http.Post("http://localhost:8082/isumid/start-recording", "text/plain", nil)
+		res, err := http.Post(URL_LIST.StartRecording, "text/plain", nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -124,10 +130,10 @@ func TestStartAndStopRecording(t *testing.T) {
 	}
 
 	{
-		previousExpected := len(utils.FetchList(t, 8082))
+		previousExpected := len(utils.FetchList(t, PORT_NUMBER))
 
 		// turn off recording
-		res, err := http.Post("http://localhost:8082/isumid/stop-recording", "text/plain", nil)
+		res, err := http.Post(URL_LIST.StopRecording, "text/plain", nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -139,7 +145,7 @@ func TestStartAndStopRecording(t *testing.T) {
 		sendSampleRequest(t)
 
 		// fetch result
-		actual := len(utils.FetchList(t, 8082))
+		actual := len(utils.FetchList(t, PORT_NUMBER))
 		expected := previousExpected
 		assert.Equal(t, expected, actual)
 		assert.Equal(t, false, fetchIsRecording(t))
@@ -158,16 +164,18 @@ func TestAutoStart(t *testing.T) {
 	})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8082", Handler: mux}
+	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
+	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
 	{
-		previousExpected := len(utils.FetchList(t, 8082))
+		previousExpected := len(utils.FetchList(t, PORT_NUMBER))
 
 		// send superfluous request
 		requestBody := "Hello World"
-		res, err := http.Post("http://localhost:8082/trigger/foo", "text/plain", bytes.NewBufferString(requestBody))
+		url := URL_LIST.UrlOrigin + "/trigger/foo"
+		res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -177,13 +185,13 @@ func TestAutoStart(t *testing.T) {
 		}
 
 		// fetch result
-		actual := len(utils.FetchList(t, 8082))
+		actual := len(utils.FetchList(t, PORT_NUMBER))
 		expected := previousExpected
 		assert.Equal(t, expected, actual)
 	}
 
 	{
-		expected := len(utils.FetchList(t, 8082))
+		expected := len(utils.FetchList(t, PORT_NUMBER))
 
 		// send request that is trigger to turn off recording after 1 sec
 		sendSampleRequestTrigger(t)
@@ -196,7 +204,7 @@ func TestAutoStart(t *testing.T) {
 		expected++
 
 		// fetch result
-		actual := len(utils.FetchList(t, 8082))
+		actual := len(utils.FetchList(t, PORT_NUMBER))
 		assert.Equal(t, expected, actual)
 	}
 }
@@ -213,16 +221,18 @@ func TestAutoStop(t *testing.T) {
 	})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8082", Handler: mux}
+	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
+	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
 	{
-		previousExpected := len(utils.FetchList(t, 8082))
+		previousExpected := len(utils.FetchList(t, PORT_NUMBER))
 
 		// send superfluous request
 		requestBody := "Hello World"
-		res, err := http.Post("http://localhost:8082/trigger/foo", "text/plain", bytes.NewBufferString(requestBody))
+		url := URL_LIST.UrlOrigin + "/trigger/foo"
+		res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -232,13 +242,13 @@ func TestAutoStop(t *testing.T) {
 		}
 
 		// fetch result
-		actual := len(utils.FetchList(t, 8082))
+		actual := len(utils.FetchList(t, PORT_NUMBER))
 		expected := previousExpected + 1
 		assert.Equal(t, expected, actual)
 	}
 
 	{
-		expected := len(utils.FetchList(t, 8082))
+		expected := len(utils.FetchList(t, PORT_NUMBER))
 
 		// send request that is trigger to turn off recording after 1 sec
 		sendSampleRequestTrigger(t)
@@ -252,14 +262,15 @@ func TestAutoStop(t *testing.T) {
 		sendSampleRequest(t)
 
 		// fetch result
-		actual := len(utils.FetchList(t, 8082))
+		actual := len(utils.FetchList(t, PORT_NUMBER))
 		assert.Equal(t, expected, actual)
 	}
 }
 
 func sendSampleRequest(t *testing.T) {
 	requestBody := "Hello World"
-	res, err := http.Post("http://localhost:8082/", "text/plain", bytes.NewBufferString(requestBody))
+	url := URL_LIST.UrlOrigin + "/"
+	res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,7 +282,8 @@ func sendSampleRequest(t *testing.T) {
 
 func sendSampleRequestTrigger(t *testing.T) {
 	requestBody := "Hello World"
-	res, err := http.Post("http://localhost:8082/trigger", "text/plain", bytes.NewBufferString(requestBody))
+	url := URL_LIST.UrlOrigin + "/trigger"
+	res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
 	if err != nil {
 		t.Fatal(err)
 	}

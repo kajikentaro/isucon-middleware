@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -19,6 +20,9 @@ import (
 )
 
 var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
+var PORT_NUMBER = 8081
+var HTTP_ADDRESS = fmt.Sprintf(":%d", PORT_NUMBER)
+var URL_LIST = utils.GetUrlList(PORT_NUMBER)
 
 func TestMain(m *testing.M) {
 	fmt.Println("test dir:", OUTPUT_DIR)
@@ -27,7 +31,7 @@ func TestMain(m *testing.M) {
 	rec := isumid.New(&settings.Setting{OutputDir: OUTPUT_DIR, RecordOnStart: true})
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
-	srv := &http.Server{Addr: ":8081", Handler: mux}
+	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
 	defer utils.StopServer(srv)
 
@@ -37,7 +41,8 @@ func TestMain(m *testing.M) {
 func TestRecord(t *testing.T) {
 	// send request
 	requestBody := "Hello World"
-	res, err := http.Post("http://localhost:8081/", "text/plain", bytes.NewBufferString(requestBody))
+	url := URL_LIST.UrlOrigin + "/"
+	res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +64,7 @@ func TestRecord(t *testing.T) {
 }
 
 func TestFetchList(t *testing.T) {
-	actual := utils.FetchList(t, 8081)
+	actual := utils.FetchList(t, PORT_NUMBER)
 	actual[0].Ulid = ""
 
 	expected := []services.RecordedTransaction{{
@@ -96,7 +101,7 @@ func fetchFirstUlid(t *testing.T) string {
 func TestFetchResBody(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
-	res, err := http.Get("http://localhost:8081/isumid/res-body/" + ulid)
+	res, err := http.Get(URL_LIST.ResBody + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +125,7 @@ func TestFetchResBody(t *testing.T) {
 func TestFetchReqBody(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
-	res, err := http.Get("http://localhost:8081/isumid/req-body/" + ulid)
+	res, err := http.Get(URL_LIST.ReqBody + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +149,7 @@ func TestFetchReqBody(t *testing.T) {
 func TestReproduce(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
-	res, err := http.Get("http://localhost:8081/isumid/reproduce/" + ulid)
+	res, err := http.Get(URL_LIST.Reproduce + ulid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,4 +166,46 @@ func TestReproduce(t *testing.T) {
 	if expected != actual {
 		t.Fatalf("response body is not correct: expected %s, actual %s", expected, actual)
 	}
+}
+
+func TestRemove(t *testing.T) {
+	// add recorded data
+	TestRecord(t)
+	TestRecord(t)
+	TestRecord(t)
+
+	transactions := utils.FetchList(t, PORT_NUMBER)
+
+	res, err := http.Get(URL_LIST.Remove + transactions[0].Ulid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal("status code is not 200")
+	}
+
+	actual := utils.FetchList(t, PORT_NUMBER)
+	expected := transactions[1:]
+
+	assert.True(t, reflect.DeepEqual(actual, expected))
+}
+
+func TestRemoveAll(t *testing.T) {
+	// add recorded data
+	TestRecord(t)
+	TestRecord(t)
+	TestRecord(t)
+
+	res, err := http.Get(URL_LIST.RemoveAll)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal("status code is not 200")
+	}
+
+	actual := utils.FetchList(t, PORT_NUMBER)
+	expected := []services.RecordedTransaction{}
+
+	assert.True(t, reflect.DeepEqual(actual, expected))
 }

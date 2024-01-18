@@ -128,6 +128,32 @@ func (h Handler) FetchReproducedResBody(w http.ResponseWriter, r *http.Request) 
 	w.Write(saved.Body)
 }
 
+func (h Handler) Remove(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	ulid, errorMessage := getUlidFromPath(r.URL.Path)
+	if errorMessage != "" {
+		http.Error(w, errorMessage, http.StatusBadRequest)
+		return
+	}
+
+	err := h.service.Remove(ulid)
+	if err != nil {
+		outputErr(w, err, http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h Handler) RemoveAll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	err := h.service.RemoveAll()
+	if err != nil {
+		outputErr(w, err, http.StatusInternalServerError)
+		return
+	}
+}
+
 //go:embed front-built/*
 var assets embed.FS
 
