@@ -30,6 +30,15 @@ export function getIsRecordingURL() {
 export function getStartRecordingURL() {
   return `${ENDPOINT_URL}isumid/start-recording`;
 }
+
 export function getStopRecordingURL() {
   return `${ENDPOINT_URL}isumid/stop-recording`;
+}
+
+export function getRemoveAllURL() {
+  return `${ENDPOINT_URL}isumid/remove-all`;
+}
+
+export function getRemoveURL(ulid: string) {
+  return `${ENDPOINT_URL}isumid/remove/${ulid}`;
 }

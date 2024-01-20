@@ -1,9 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import { executionProgress } from "./execution-progress";
-import { recordedTransaction } from "./recorded-transaction";
-import { executionResponse } from "./execution-response";
 import { comparisonPopup } from "./comparison-popup";
+import { executionProgress } from "./execution-progress";
+import { executionResponse } from "./execution-response";
+import { recordedTransaction } from "./recorded-transaction";
+import { ui } from "./ui";
 
 const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ const store = configureStore({
     recordedTransaction,
     executionResponse,
     comparisonPopup,
+    ui,
   },
 });
 

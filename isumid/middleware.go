@@ -27,7 +27,7 @@ func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 	mux.HandleFunc("/isumid/req-body/", rec.handler.FetchReqBody)
 	mux.HandleFunc("/isumid/res-body/", rec.handler.FetchResBody)
 	mux.HandleFunc("/isumid/remove/", rec.handler.Remove)
-	mux.HandleFunc("/isumid/remove-all/", rec.handler.RemoveAll)
+	mux.HandleFunc("/isumid/remove-all", rec.handler.RemoveAll)
 	mux.HandleFunc("/isumid/reproduced-res-body/", rec.handler.FetchReproducedResBody)
 	mux.HandleFunc("/isumid/list", rec.handler.FetchList)
 	mux.Handle("/isumid/reproduce/", rec.middleware.Reproducer(next))

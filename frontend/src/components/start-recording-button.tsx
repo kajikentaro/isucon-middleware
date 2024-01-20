@@ -1,10 +1,11 @@
 "use client";
 import { useIsRecording } from "@/hooks/use-is-recording";
+import { FaPlay, FaStop } from "react-icons/fa";
 
 export default function StartRecordingButton() {
   const { recordingStatus, startRecording, stopRecording } = useIsRecording();
   const className =
-    "border-2 py-1 px-2 rounded-full flex items-center w-36 justify-center";
+    "border-2 py-1 px-2 rounded-full flex items-center w-44 justify-center gap-1";
 
   if (recordingStatus === "checking-status") {
     return (
@@ -20,6 +21,7 @@ export default function StartRecordingButton() {
         className={className + " border-red-500 text-red-500"}
         onClick={stopRecording}
       >
+        <FaStop />
         Stop Recording
       </button>
     );
@@ -30,6 +32,7 @@ export default function StartRecordingButton() {
         className={className + " border-blue-500 text-blue-500 font-bold"}
         onClick={startRecording}
       >
+        <FaPlay />
         Start Recording
       </button>
     );

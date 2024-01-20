@@ -1,48 +1,46 @@
 "use client";
 import TableRow from "@/components/table-row";
+import { useCurrentPageNum } from "@/hooks/use-current-page-num";
 import { useExecuteChecked } from "@/hooks/use-execute-checked";
-import {
-  ExecutionProgressMap,
-  setExecutionProgressAll,
-} from "@/store/execution-progress";
-import { useAppDispatch, useAppSelector } from "@/store/main";
-import {
-  selectRecordedTransactionUlids,
-  setRecordedTransactionList,
-} from "@/store/recorded-transaction";
-import { RecordedTransaction } from "@/types";
-import { getFetchListUrl } from "@/utils/get-url";
+import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
+import { useAppSelector } from "@/store/main";
+import { selectRecordedTransactionUlids } from "@/store/recorded-transaction";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { MouseEvent, useEffect, useMemo, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
+import RemoveAllButton from "./remove-all-button";
+import RemoveSelectedButton from "./remove-selected-button";
 import StartRecordingButton from "./start-recording-button";
 
 const MAX_ROW_LENGTH = 100;
 
 export default function Main() {
-  const dispatch = useAppDispatch();
+  const { fetchTransactions, isFetchingTransactions } = useFetchTransactions();
+  const executeChecked = useExecuteChecked();
+  const currentPageNum = useCurrentPageNum();
+  const [selected, setSelected] = useState<boolean[]>([]);
+
   const recordedTransactionUlids = useAppSelector(
     selectRecordedTransactionUlids
   );
 
-  const [selected, setSelected] = useState<boolean[]>([]);
+  // this is used for selecting the range where user click transactions with Shift key
   const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const onExecuteChecked = useExecuteChecked();
+  useEffect(() => {
+    fetchTransactions(currentPageNum);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPageNum]);
 
-  const searchParams = useSearchParams();
-  const currentPageNum = useMemo(() => {
-    const page = searchParams.get("page") || "1";
-
-    const pageInt = Number(page);
-    if (isNaN(pageInt)) {
-      return 1;
-    }
-    return pageInt;
-  }, [searchParams]);
+  useEffect(() => {
+    // reset selected checkbox as false when updating transactions
+    const transactionLength = recordedTransactionUlids.length;
+    setSelected(Array(transactionLength).fill(true));
+  }, [recordedTransactionUlids]);
 
   const isAllSelected = selected.every((s) => s) && selected.length > 0;
+  const selectedUlids = recordedTransactionUlids.filter(
+    (_, idx) => selected[idx]
+  );
 
   const handleCheckboxClick = (event: MouseEvent, index: number) => {
     if (!selected.length) return;
@@ -71,41 +69,18 @@ export default function Main() {
     event.stopPropagation();
   };
 
-  const fetchData = async (page: number) => {
-    const response = await fetch(
-      getFetchListUrl((page - 1) * MAX_ROW_LENGTH, MAX_ROW_LENGTH)
-    );
-    const json: RecordedTransaction[] = await response.json();
-    dispatch(setRecordedTransactionList(json));
-
-    const progressMap: ExecutionProgressMap = {};
-    for (const progress of json) {
-      progressMap[progress.Ulid] = "init";
-    }
-    dispatch(setExecutionProgressAll(progressMap));
-
-    setSelected(Array(json.length).fill(true));
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData(currentPageNum);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
-
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="flex w-full justify-between px-4 py-3 mb-2">
         <h1 className="text-3xl font-bold">Isucon Middleware</h1>
         <div className="flex gap-x-5">
+          <RemoveSelectedButton selectedUlids={selectedUlids} />
+          <RemoveAllButton />
           <StartRecordingButton />
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full flex items-center"
             onClick={(e) => {
-              const checkedUlids = recordedTransactionUlids.filter(
-                (_, idx) => selected[idx]
-              );
-              onExecuteChecked(checkedUlids);
+              executeChecked(selectedUlids);
               e.stopPropagation();
             }}
           >
@@ -150,8 +125,8 @@ export default function Main() {
           ))}
         </tbody>
       </table>
-      {isLoading && <p>now loading</p>}
-      {!isLoading && recordedTransactionUlids.length === 0 && (
+      {isFetchingTransactions && <p>now loading</p>}
+      {!isFetchingTransactions && recordedTransactionUlids.length === 0 && (
         <p>result was not found</p>
       )}
 
@@ -161,7 +136,7 @@ export default function Main() {
             href={{
               query: { page: currentPageNum - 1 },
             }}
-            onClick={() => fetchData(currentPageNum + 1)}
+            onClick={() => fetchTransactions(currentPageNum + 1)}
             className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
             prefetch={false}
           >
@@ -173,7 +148,7 @@ export default function Main() {
             href={{
               query: { page: currentPageNum + 1 },
             }}
-            onClick={() => fetchData(currentPageNum + 1)}
+            onClick={() => fetchTransactions(currentPageNum + 1)}
             className="border-blue-500 border-2 text-blue-500 font-bold m-3 py-2 px-3 rounded-lg"
             prefetch={false}
           >
