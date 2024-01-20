@@ -1,6 +1,6 @@
 import { execute } from "@/actions/execute";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { selectExecutionProgress } from "@/store/execution-progress";
-import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 
 export function useExecute(ulid: string) {

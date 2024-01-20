@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { State } from "./main";
+import { State } from ".";
 
 export type ExecutionProgress =
   | "waitingResponse"

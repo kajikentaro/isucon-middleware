@@ -1,12 +1,12 @@
 "use client";
 import ThreeDotsAnimation from "@/parts/3-dots-animation";
+import { useAppSelector } from "@/store";
 import { selectExecutionProgressMap } from "@/store/execution-progress";
-import { useAppSelector } from "@/store/main";
 import { shouldBeNever } from "@/utils/assert-never";
 import {
-  AiOutlineLoading,
-  AiOutlineCloseCircle,
   AiOutlineCheckCircle,
+  AiOutlineCloseCircle,
+  AiOutlineLoading,
   AiOutlineWarning,
 } from "react-icons/ai";
 

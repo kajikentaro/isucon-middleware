@@ -1,8 +1,8 @@
+import { AppDispatch, GetState } from "@/store";
 import { setExecutionProgress } from "@/store/execution-progress";
 import { setExecutionResponse } from "@/store/execution-response";
 import { ExecutionResponse } from "@/types";
 import { getReproduceUrl } from "@/utils/get-url";
-import { AppDispatch, GetState } from "@/store/main";
 
 export function execute(ulid: string) {
   return async (dispatch: AppDispatch, getState: GetState) => {

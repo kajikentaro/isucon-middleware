@@ -3,19 +3,19 @@ import { useExecute } from "@/hooks/use-execute";
 import { useOpenPopup } from "@/hooks/use-open-popup";
 import Code from "@/parts/code";
 import { TagBinary } from "@/parts/tag-binary";
-import { useAppSelector } from "@/store/main";
+import { useAppSelector } from "@/store";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { MouseEvent } from "react";
 import ProgressIcon from "../parts/progress-icon";
 
 interface Props {
   ulid: string;
-  handleCheckboxClick: (event: MouseEvent) => void;
+  onCheckboxClick: (event: MouseEvent) => void;
   isSelected: boolean;
 }
 
 export default function TableRow(props: Props) {
-  const { handleCheckboxClick, isSelected, ulid } = props;
+  const { onCheckboxClick, isSelected, ulid } = props;
 
   const item = useAppSelector(selectRecordedTransaction(ulid));
   const onExecute = useExecute(item.Ulid);
@@ -23,10 +23,7 @@ export default function TableRow(props: Props) {
 
   return (
     <tr className="border-b hover:bg-gray-100" onClick={openPopup}>
-      <td
-        className="px-4 py-2 whitespace-nowrap"
-        onClick={(e) => handleCheckboxClick(e)}
-      >
+      <td className="px-4 py-2 whitespace-nowrap" onClick={onCheckboxClick}>
         <div
           className={`w-3 h-3 border  rounded m-auto block ${
             isSelected ? "bg-blue-500 border-blue-500" : " border-gray-500"

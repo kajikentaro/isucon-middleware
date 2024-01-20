@@ -1,6 +1,6 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { State } from ".";
 import { RecordedTransaction } from "../types";
-import { State } from "./main";
 
 const initialState: Record<string, RecordedTransaction> = {};
 

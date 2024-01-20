@@ -1,12 +1,12 @@
 import { useExecute } from "@/hooks/use-execute";
 import Code from "@/parts/code";
 import { TagBinary } from "@/parts/tag-binary";
+import { useAppDispatch, useAppSelector } from "@/store";
 import {
   closeComparisonPopup,
   selectComparisonPopup,
 } from "@/store/comparison-popup";
 import { selectExecutionResponse } from "@/store/execution-response";
-import { useAppDispatch, useAppSelector } from "@/store/main";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import { Header } from "@/types";
 import { BodyType } from "@/utils/get-url";

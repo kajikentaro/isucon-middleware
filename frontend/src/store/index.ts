@@ -4,7 +4,7 @@ import { comparisonPopup } from "./comparison-popup";
 import { executionProgress } from "./execution-progress";
 import { executionResponse } from "./execution-response";
 import { recordedTransaction } from "./recorded-transaction";
-import { ui } from "./ui";
+import ui from "./ui";
 
 const store = configureStore({
   reducer: {

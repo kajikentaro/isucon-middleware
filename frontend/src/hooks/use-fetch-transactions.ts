@@ -1,24 +1,22 @@
+import { useAppDispatch, useAppSelector } from "@/store";
 import {
   ExecutionProgressMap,
   setExecutionProgressAll,
 } from "@/store/execution-progress";
-import { useAppDispatch, useAppSelector } from "@/store/main";
 import { setRecordedTransactionList } from "@/store/recorded-transaction";
 import {
   selectIsFetchingTransactions,
   setIsFetchingTransactions,
-} from "@/store/ui";
+} from "@/store/ui/is-fetching-transactions";
+import { setSelectedUlids } from "@/store/ui/selectedRowIdx";
 import { RecordedTransaction } from "@/types";
 import { getFetchListUrl } from "@/utils/get-url";
-import { useState } from "react";
 
 const MAX_ROW_LENGTH = 100;
 
 export function useFetchTransactions() {
   const dispatch = useAppDispatch();
   const isFetchingTransactions = useAppSelector(selectIsFetchingTransactions);
-
-  const [selected, setSelected] = useState<boolean[]>([]);
 
   const fetchTransactions = async (page: number) => {
     const response = await fetch(
@@ -33,7 +31,7 @@ export function useFetchTransactions() {
     }
     dispatch(setExecutionProgressAll(progressMap));
 
-    setSelected(Array(json.length).fill(true));
+    dispatch(setSelectedUlids(Object.keys(progressMap)));
     dispatch(setIsFetchingTransactions(false));
   };
 

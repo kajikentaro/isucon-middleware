@@ -1,86 +1,43 @@
 "use client";
-import TableRow from "@/components/table-row";
 import { useCurrentPageNum } from "@/hooks/use-current-page-num";
 import { useExecuteChecked } from "@/hooks/use-execute-checked";
 import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
-import { useAppSelector } from "@/store/main";
+import { useAppSelector } from "@/store";
 import { selectRecordedTransactionUlids } from "@/store/recorded-transaction";
 import Link from "next/link";
-import { MouseEvent, useEffect, useState } from "react";
+import { useEffect } from "react";
 import RemoveAllButton from "./remove-all-button";
 import RemoveSelectedButton from "./remove-selected-button";
 import StartRecordingButton from "./start-recording-button";
+import Table from "./table";
 
 const MAX_ROW_LENGTH = 100;
 
 export default function Main() {
-  const { fetchTransactions, isFetchingTransactions } = useFetchTransactions();
+  const { fetchTransactions } = useFetchTransactions();
   const executeChecked = useExecuteChecked();
   const currentPageNum = useCurrentPageNum();
-  const [selected, setSelected] = useState<boolean[]>([]);
-
   const recordedTransactionUlids = useAppSelector(
     selectRecordedTransactionUlids
   );
-
-  // this is used for selecting the range where user click transactions with Shift key
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(-1);
 
   useEffect(() => {
     fetchTransactions(currentPageNum);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPageNum]);
 
-  useEffect(() => {
-    // reset selected checkbox as false when updating transactions
-    const transactionLength = recordedTransactionUlids.length;
-    setSelected(Array(transactionLength).fill(true));
-  }, [recordedTransactionUlids]);
-
-  const isAllSelected = selected.every((s) => s) && selected.length > 0;
-  const selectedUlids = recordedTransactionUlids.filter(
-    (_, idx) => selected[idx]
-  );
-
-  const handleCheckboxClick = (event: MouseEvent, index: number) => {
-    if (!selected.length) return;
-
-    const newSelected = [...selected];
-
-    if (event.shiftKey) {
-      // Shift-click: select all rows in range
-      const nextIsTrue = !selected[index];
-      for (
-        let i = Math.min(lastSelectedIndex, index);
-        i <= Math.max(lastSelectedIndex, index);
-        i++
-      ) {
-        newSelected[i] = nextIsTrue;
-      }
-    } else {
-      // Select only clicked row
-      newSelected[index] = !selected[index];
-    }
-
-    setSelected(newSelected);
-    setLastSelectedIndex(index);
-
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="flex w-full justify-between px-4 py-3 mb-2">
         <h1 className="text-3xl font-bold">Isucon Middleware</h1>
         <div className="flex gap-x-5">
-          <RemoveSelectedButton selectedUlids={selectedUlids} />
+          <RemoveSelectedButton />
           <RemoveAllButton />
           <StartRecordingButton />
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded-full flex items-center"
             onClick={(e) => {
-              executeChecked(selectedUlids);
+              executeChecked();
               e.stopPropagation();
             }}
           >
@@ -88,47 +45,7 @@ export default function Main() {
           </button>
         </div>
       </div>
-      <table className="table-auto border-collapse w-full">
-        <thead>
-          <tr className="border-b bg-gray-100 text-gray-600">
-            <th
-              className="px-4 py-2 whitespace-nowrap"
-              onClick={() => {
-                setSelected(Array(selected.length).fill(!isAllSelected));
-              }}
-            >
-              <div
-                className={`w-4 h-4 border border-gray-500 rounded m-auto block ${
-                  isAllSelected ? "bg-blue-500" : "bg-white"
-                }`}
-              />
-            </th>
-            <th className="px-4 py-2 whitespace-nowrap">Method</th>
-            <th className="px-4 py-2 whitespace-nowrap">URL</th>
-            <th className="px-4 py-2 w-1/2">ReqBody</th>
-            <th className="px-4 py-2">Status Code</th>
-            <th className="px-4 py-2 w-1/2">ResBody</th>
-            <th>Execution Result</th>
-            <th className="px-4 py-2 w-1/2">Execute</th>
-          </tr>
-        </thead>
-        <tbody>
-          {recordedTransactionUlids.map((ulid, index) => (
-            <TableRow
-              isSelected={selected[index]}
-              handleCheckboxClick={(e: MouseEvent) =>
-                handleCheckboxClick(e, index)
-              }
-              ulid={ulid}
-              key={ulid}
-            />
-          ))}
-        </tbody>
-      </table>
-      {isFetchingTransactions && <p>now loading</p>}
-      {!isFetchingTransactions && recordedTransactionUlids.length === 0 && (
-        <p>result was not found</p>
-      )}
+      <Table />
 
       <div className="flex flex-row">
         {currentPageNum !== 1 && (
