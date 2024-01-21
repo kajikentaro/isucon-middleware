@@ -3,7 +3,7 @@
 import { useCurrentPageNum } from "@/hooks/use-current-page-num";
 import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
 import { useAppSelector } from "@/store";
-import { selectSelectedUlids } from "@/store/ui/selectedRowIdx";
+import { selectSelectedUlids } from "@/store/ui/selected-ulids";
 import { getRemoveURL } from "@/utils/get-url";
 import { useState } from "react";
 import { CiTrash } from "react-icons/ci";

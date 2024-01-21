@@ -5,7 +5,7 @@ import {
   selectExecutionProgressMap,
   setExecutionProgressAll,
 } from "@/store/execution-progress";
-import { selectSelectedUlids } from "@/store/ui/selectedRowIdx";
+import { selectSelectedUlids } from "@/store/ui/selected-ulids";
 
 export function useExecuteChecked() {
   const dispatch = useAppDispatch();

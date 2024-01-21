@@ -8,7 +8,7 @@ import {
   selectIsFetchingTransactions,
   setIsFetchingTransactions,
 } from "@/store/ui/is-fetching-transactions";
-import { setSelectedUlids } from "@/store/ui/selectedRowIdx";
+import { setSelectedUlids } from "@/store/ui/selected-ulids";
 import { RecordedTransaction } from "@/types";
 import { getFetchListUrl } from "@/utils/get-url";
 

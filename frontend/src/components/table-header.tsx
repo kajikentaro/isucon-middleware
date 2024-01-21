@@ -4,7 +4,7 @@ import { selectRecordedTransactionUlids } from "@/store/recorded-transaction";
 import {
   selectSelectedUlids,
   setSelectedUlids,
-} from "@/store/ui/selectedRowIdx";
+} from "@/store/ui/selected-ulids";
 
 export default function TableHeader() {
   const dispatch = useAppDispatch();
