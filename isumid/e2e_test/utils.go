@@ -83,7 +83,7 @@ type UrlList struct {
 	ResBody           string
 	Remove            string
 	RemoveAll         string
-	Count             string
+	TotalTransactions string
 	ReproducesResBody string
 	List              string
 	Reproduce         string
@@ -102,7 +102,7 @@ func GetUrlList(portNum int) UrlList {
 		ResBody:           prefix + "/res-body/",
 		Remove:            prefix + "/remove/",
 		RemoveAll:         prefix + "/remove-all",
-		Count:             prefix + "/count",
+		TotalTransactions: prefix + "/total-transactions",
 		ReproducesResBody: prefix + "/reproduces-res-body/",
 		List:              prefix + "/list",
 		Reproduce:         prefix + "/reproduce/",

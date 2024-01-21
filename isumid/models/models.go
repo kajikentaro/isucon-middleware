@@ -2,7 +2,7 @@ package models
 
 import "net/http"
 
-type Count struct {
+type FetchTotalTransactionsResponse struct {
 	Count int
 }
 

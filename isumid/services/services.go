@@ -119,13 +119,13 @@ func (s Service) RemoveAll() error {
 	return nil
 }
 
-func (s Service) Count() (models.Count, error) {
-	count, err := s.storage.Count()
+func (s Service) FetchTotalTransactions() (models.FetchTotalTransactionsResponse, error) {
+	count, err := s.storage.FetchTotalTransactions()
 	if err != nil {
-		return models.Count{}, err
+		return models.FetchTotalTransactionsResponse{}, err
 	}
 
-	res := models.Count{
+	res := models.FetchTotalTransactionsResponse{
 		Count: count,
 	}
 	return res, nil

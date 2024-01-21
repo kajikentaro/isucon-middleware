@@ -174,20 +174,20 @@ func TestRemoveAll(t *testing.T) {
 	assert.True(t, reflect.DeepEqual(actual, expected))
 }
 
-func TestCount(t *testing.T) {
+func TestFetchTotalTransactions(t *testing.T) {
 	// add recorded data
 	TestRecord(t)
 	TestRecord(t)
 	TestRecord(t)
 
-	res, err := http.Get(URL_LIST.Count)
+	res, err := http.Get(URL_LIST.TotalTransactions)
 	assert.NoError(t, err)
 	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
-	actual := models.Count{}
+	actual := models.FetchTotalTransactionsResponse{}
 	err = json.NewDecoder(res.Body).Decode(&actual)
 	assert.NoError(t, err)
-	expected := models.Count{
+	expected := models.FetchTotalTransactionsResponse{
 		Count: 3,
 	}
 

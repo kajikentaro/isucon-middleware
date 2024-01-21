@@ -204,14 +204,14 @@ func TestIsText(t *testing.T) {
 	}
 }
 
-func TestCount(t *testing.T) {
+func TestFetchTotalTransactions(t *testing.T) {
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)
 
 	metaList, err := storage.FetchMetaList(0, 100)
 	assert.NoError(t, err)
 
-	actual, err := storage.Count()
+	actual, err := storage.FetchTotalTransactions()
 	assert.NoError(t, err)
 
 	expected := len(metaList)

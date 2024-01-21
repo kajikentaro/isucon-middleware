@@ -154,16 +154,16 @@ func (h Handler) RemoveAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h Handler) Count(w http.ResponseWriter, r *http.Request) {
+func (h Handler) FetchTotalTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	count, err := h.service.Count()
+	totalTransactions, err := h.service.FetchTotalTransactions()
 	if err != nil {
 		outputErr(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(count)
+	json.NewEncoder(w).Encode(totalTransactions)
 }
 
 //go:embed front-built/*
