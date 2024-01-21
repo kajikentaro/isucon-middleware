@@ -2,6 +2,7 @@ package test_e2e_endpoints
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid"
 	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
@@ -206,6 +208,31 @@ func TestRemoveAll(t *testing.T) {
 
 	actual := utils.FetchList(t, PORT_NUMBER)
 	expected := []services.RecordedTransaction{}
+
+	assert.True(t, reflect.DeepEqual(actual, expected))
+}
+
+func TestCount(t *testing.T) {
+	// add recorded data
+	TestRecord(t)
+	TestRecord(t)
+	TestRecord(t)
+
+	res, err := http.Get(URL_LIST.Count)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.StatusCode != 200 {
+		t.Fatal("status code is not 200")
+	}
+
+	actual := models.Count{}
+	if err := json.NewDecoder(res.Body).Decode(&actual); err != nil {
+		t.Fatal(err)
+	}
+	expected := models.Count{
+		Count: 3,
+	}
 
 	assert.True(t, reflect.DeepEqual(actual, expected))
 }

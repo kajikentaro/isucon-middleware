@@ -283,3 +283,12 @@ func (s Storage) Remove(ulid string) error {
 
 	return nil
 }
+
+func (s Storage) Count() (int, error) {
+	fileList, err := filepath.Glob(filepath.Join(s.OutputDir, "*.meta"))
+	if err != nil {
+		return 0, err
+	}
+
+	return len(fileList), nil
+}

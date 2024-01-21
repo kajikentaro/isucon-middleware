@@ -221,6 +221,25 @@ func TestIsText(t *testing.T) {
 	}
 }
 
+func TestCount(t *testing.T) {
+	setting := settings.Setting{OutputDir: OUTPUT_DIR}
+	storage := New(setting)
+
+	metaList, err := storage.FetchMetaList(0, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	actual, err := storage.Count()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := len(metaList)
+	assert.NotEqual(t, expected, 0, "expected should be more than 0 for better testing")
+	assert.Equal(t, expected, actual)
+}
+
 func TestRemove(t *testing.T) {
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
 	storage := New(setting)

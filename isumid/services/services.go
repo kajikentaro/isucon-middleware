@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
@@ -128,4 +129,16 @@ func (s Service) RemoveAll() error {
 		return err
 	}
 	return nil
+}
+
+func (s Service) Count() (models.Count, error) {
+	count, err := s.storage.Count()
+	if err != nil {
+		return models.Count{}, err
+	}
+
+	res := models.Count{
+		Count: count,
+	}
+	return res, nil
 }
