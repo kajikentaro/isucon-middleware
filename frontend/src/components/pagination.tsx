@@ -30,7 +30,11 @@ export default function Pagination() {
     );
   };
 
-  if (isFetchingTransactions || totalTransactions <= 0) {
+  if (isFetchingTransactions) {
+    return null;
+  }
+
+  if (maxPageNum <= 1) {
     return null;
   }
 
