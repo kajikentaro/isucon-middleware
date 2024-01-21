@@ -1,6 +1,7 @@
 "use client";
 import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
+import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
+import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
 import { useEffect } from "react";
 import ExecuteCheckedButton from "./execute-checked-button";
 import Pagination from "./pagination";
@@ -10,11 +11,13 @@ import StartRecordingButton from "./start-recording-button";
 import Table from "./table";
 
 export default function Main() {
-  const { fetchTransactions } = useFetchTransactions();
+  const { fetchTransactions } = useFetchRecordedTransactions();
+  const { fetchTotalTransactions } = useFetchTotalTransactions();
   const currentPageNum = useCurrentPageNum();
 
   useEffect(() => {
     fetchTransactions(currentPageNum);
+    fetchTotalTransactions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPageNum]);
 

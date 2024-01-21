@@ -1,14 +1,16 @@
 "use client";
 
 import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
+import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
+import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
 import { getRemoveAllURL } from "@/utils/get-url";
 import { useState } from "react";
 import { CiTrash } from "react-icons/ci";
 
 export default function RemoveAllButton() {
   const [isRemoving, setIsRemoving] = useState(false);
-  const { fetchTransactions } = useFetchTransactions();
+  const { fetchTransactions } = useFetchRecordedTransactions();
+  const { fetchTotalTransactions } = useFetchTotalTransactions();
   const currentPageNum = useCurrentPageNum();
 
   const className =
@@ -27,6 +29,7 @@ export default function RemoveAllButton() {
     setIsRemoving(false);
     if (res.status === 200) {
       await fetchTransactions(currentPageNum);
+      await fetchTotalTransactions();
     }
   };
 

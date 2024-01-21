@@ -1,17 +1,22 @@
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  selectTotalTransactions,
+  setTotalTransactions,
+} from "@/store/total-transactions";
 import { TotalTransactions } from "@/types";
 import { getTotalTransactionsURL } from "@/utils/get-url";
-import { useEffect, useState } from "react";
 
-export function useTotalTransactions() {
-  const [count, setCount] = useState(0);
+export function useFetchTotalTransactions() {
+  const dispatch = useAppDispatch();
+  const totalTransactions = useAppSelector(selectTotalTransactions);
 
-  useEffect(() => {
-    (async () => {
-      const res = await fetch(getTotalTransactionsURL());
-      const json = (await res.json()) as TotalTransactions;
-      setCount(json.Count);
-    })();
-  }, []);
+  const fetchTotalTransactions = async () => {
+    dispatch(setTotalTransactions(-1));
+    const res = await fetch(getTotalTransactionsURL());
+    const json = (await res.json()) as TotalTransactions;
+    const count = json.Count;
+    dispatch(setTotalTransactions(count));
+  };
 
-  return count;
+  return { fetchTotalTransactions, totalTransactions };
 }

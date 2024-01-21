@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { State } from "..";
 
 export type IsFetchingTransactions = boolean;
-const initialState = true;
+const initialState: IsFetchingTransactions = true;
 
 const slice = createSlice({
   name: "isFetchingTransactions",

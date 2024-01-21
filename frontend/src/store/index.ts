@@ -3,6 +3,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { executionProgress } from "./execution-progress";
 import { executionResponse } from "./execution-response";
 import { recordedTransaction } from "./recorded-transaction";
+import { totalTransactions } from "./total-transactions";
 import ui from "./ui";
 
 const store = configureStore({
@@ -10,6 +11,7 @@ const store = configureStore({
     executionProgress,
     recordedTransaction,
     executionResponse,
+    totalTransactions,
     ui,
   },
 });

@@ -1,16 +1,17 @@
 import { MAX_ROW_LENGTH } from "@/constants";
 import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
-import { useTotalTransactions } from "@/hooks/use-total-transactions";
+import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
+import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
 import Link from "next/link";
 
 // the number of active buttons before and after the current page
 const ACTIVE_BUTTON_LENGTH = 2;
 
 export default function Pagination() {
-  const totalTransactions = useTotalTransactions();
+  const { isFetchingTransactions } = useFetchRecordedTransactions();
+  const { totalTransactions } = useFetchTotalTransactions();
   const maxPageNum = Math.ceil(totalTransactions / MAX_ROW_LENGTH);
-  const { fetchTransactions } = useFetchTransactions();
+  const { fetchTransactions } = useFetchRecordedTransactions();
   const currentPageNum = useCurrentPageNum();
 
   const getLinkProps = (pageNum: number) => ({
@@ -28,6 +29,10 @@ export default function Pagination() {
       pageNum === maxPageNum
     );
   };
+
+  if (isFetchingTransactions || totalTransactions <= 0) {
+    return null;
+  }
 
   return (
     <nav className="my-4">

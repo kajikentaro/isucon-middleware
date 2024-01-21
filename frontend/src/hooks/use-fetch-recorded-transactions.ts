@@ -14,7 +14,7 @@ import { getFetchListUrl } from "@/utils/get-url";
 
 const MAX_ROW_LENGTH = 100;
 
-export function useFetchTransactions() {
+export function useFetchRecordedTransactions() {
   const dispatch = useAppDispatch();
   const isFetchingTransactions = useAppSelector(selectIsFetchingTransactions);
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchTransactions } from "@/hooks/use-fetch-transactions";
+import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
+import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
 import { useAppSelector } from "@/store";
 import { selectSelectedUlids } from "@/store/ui/selected-ulids";
 import { getRemoveURL } from "@/utils/get-url";
@@ -10,7 +11,8 @@ import { CiTrash } from "react-icons/ci";
 
 export default function RemoveSelectedButton() {
   const [isRemoving, setIsRemoving] = useState(false);
-  const { fetchTransactions } = useFetchTransactions();
+  const { fetchTransactions } = useFetchRecordedTransactions();
+  const { fetchTotalTransactions } = useFetchTotalTransactions();
   const currentPageNum = useCurrentPageNum();
   const selectedUlids = useAppSelector(selectSelectedUlids);
 
@@ -31,6 +33,7 @@ export default function RemoveSelectedButton() {
     }
     setIsRemoving(false);
     await fetchTransactions(currentPageNum);
+    await fetchTotalTransactions();
   };
 
   if (isRemoving) {
