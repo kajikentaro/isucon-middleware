@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kajikentaro/isucon-middleware/isumid/services"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/stretchr/testify/assert"
 )
 
-func FetchList(t *testing.T, portNum int) []services.RecordedTransaction {
+func FetchList(t *testing.T, portNum int) []models.RecordedTransaction {
 	requestUrl := GetUrlList(portNum).List
 	u, err := url.Parse(requestUrl)
 	assert.NoError(t, err)
@@ -34,7 +34,7 @@ func FetchList(t *testing.T, portNum int) []services.RecordedTransaction {
 	responseBody, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
-	recordedTransactions := []services.RecordedTransaction{}
+	recordedTransactions := []models.RecordedTransaction{}
 	err = json.Unmarshal(responseBody, &recordedTransactions)
 	assert.NoError(t, err)
 	return recordedTransactions

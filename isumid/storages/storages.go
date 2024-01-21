@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/oklog/ulid"
 	"github.com/vmihailenco/msgpack/v5"
@@ -17,32 +18,6 @@ import (
 
 type Storage struct {
 	settings.Setting
-}
-
-type RecordedDataInput struct {
-	Method    string
-	Url       string
-	ReqHeader map[string][]string
-	ReqBody   []byte
-
-	StatusCode int
-	ResHeader  map[string][]string
-	ResBody    []byte
-}
-
-type Meta struct {
-	Method    string
-	Url       string
-	ReqHeader map[string][]string
-
-	StatusCode int
-	ResHeader  map[string][]string
-
-	IsReqText bool
-	IsResText bool
-	ReqLength int
-	ResLength int
-	Ulid      string
 }
 
 func New(setting settings.Setting) Storage {
@@ -81,7 +56,7 @@ func genUlidStr() string {
 	return id.String()
 }
 
-func (s Storage) Save(data RecordedDataInput) error {
+func (s Storage) Save(data models.RecordedDataInput) error {
 	err := os.MkdirAll(s.OutputDir, 0777)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -96,7 +71,7 @@ func (s Storage) Save(data RecordedDataInput) error {
 		if err != nil {
 			return err
 		}
-		meta := Meta{
+		meta := models.Meta{
 			Method:     data.Method,
 			Url:        data.Url,
 			ReqHeader:  data.ReqHeader,
@@ -145,22 +120,22 @@ func (s Storage) Save(data RecordedDataInput) error {
 	return nil
 }
 
-func (s Storage) FetchMeta(ulid string) (Meta, error) {
+func (s Storage) FetchMeta(ulid string) (models.Meta, error) {
 	data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".meta"))
 	if err != nil {
-		return Meta{}, err
+		return models.Meta{}, err
 	}
 
-	var meta Meta
+	var meta models.Meta
 	err = msgpack.Unmarshal(data, &meta)
 	if err != nil {
-		return Meta{}, err
+		return models.Meta{}, err
 	}
 
 	return meta, nil
 }
 
-func (s Storage) FetchMetaList(offset, length int) ([]Meta, error) {
+func (s Storage) FetchMetaList(offset, length int) ([]models.Meta, error) {
 	fileList, err := os.ReadDir(s.OutputDir)
 	if err != nil {
 		return nil, err
@@ -177,7 +152,7 @@ func (s Storage) FetchMetaList(offset, length int) ([]Meta, error) {
 		metaList = append(metaList, file)
 	}
 
-	res := []Meta{}
+	res := []models.Meta{}
 	for idx, file := range metaList {
 		if idx < offset {
 			continue
@@ -192,7 +167,7 @@ func (s Storage) FetchMetaList(offset, length int) ([]Meta, error) {
 			continue
 		}
 
-		var meta Meta
+		var meta models.Meta
 		err = msgpack.Unmarshal(data, &meta)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

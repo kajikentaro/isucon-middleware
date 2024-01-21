@@ -15,9 +15,7 @@ import (
 	"github.com/kajikentaro/isucon-middleware/isumid"
 	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
-	"github.com/kajikentaro/isucon-middleware/isumid/services"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
-	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -61,10 +59,10 @@ func TestFetchList(t *testing.T) {
 	actual := utils.FetchList(t, PORT_NUMBER)
 	actual[0].Ulid = ""
 
-	expected := []services.RecordedTransaction{{
+	expected := []models.RecordedTransaction{{
 		ResBody: "Hello World Response",
 		ReqBody: "Hello World",
-		Meta: storages.Meta{
+		Meta: models.Meta{
 			Url: "/",
 			ReqHeader: map[string][]string{
 				"Accept-Encoding": {"gzip"},
@@ -171,7 +169,7 @@ func TestRemoveAll(t *testing.T) {
 	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	actual := utils.FetchList(t, PORT_NUMBER)
-	expected := []services.RecordedTransaction{}
+	expected := []models.RecordedTransaction{}
 
 	assert.True(t, reflect.DeepEqual(actual, expected))
 }

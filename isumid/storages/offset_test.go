@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ var OUTPUT_DIR = filepath.Join(os.TempDir(), uuid.NewString())
 
 func TestSave(t *testing.T) {
 	// prepqre request
-	saveData := storages.RecordedDataInput{
+	saveData := models.RecordedDataInput{
 		Method:     "GET",
 		Url:        "/test-url",
 		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},

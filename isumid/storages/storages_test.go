@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestMain(m *testing.M) {
 
 func TestSave(t *testing.T) {
 	// prepqre request
-	saveData := RecordedDataInput{
+	saveData := models.RecordedDataInput{
 		Method:     "GET",
 		Url:        "/test-url",
 		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},
@@ -59,7 +60,7 @@ func TestFetchMeta(t *testing.T) {
 	actual, err := storage.FetchMeta(ulid)
 	assert.NoError(t, err)
 
-	expected := Meta{
+	expected := models.Meta{
 		Method:     "GET",
 		Url:        "/test-url",
 		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},
@@ -84,7 +85,7 @@ func TestFetchMetaList(t *testing.T) {
 	// ignore ulid
 	actual[0].Ulid = ""
 
-	expected := []Meta{{
+	expected := []models.Meta{{
 		Method:     "GET",
 		Url:        "/test-url",
 		ReqHeader:  map[string][]string{"Content-Type": {"application/octet-stream"}},

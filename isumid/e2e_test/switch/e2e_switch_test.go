@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid"
 	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/stretchr/testify/assert"
 )
@@ -78,10 +79,7 @@ func fetchIsRecording(t *testing.T) bool {
 	assert.NoError(t, err)
 	assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
-	// Decode JSON response into a Person struct
-	var isRecording struct {
-		IsRecording bool
-	}
+	isRecording := models.IsRecordingResponse{}
 	err = json.NewDecoder(res.Body).Decode(&isRecording)
 	assert.NoError(t, err)
 

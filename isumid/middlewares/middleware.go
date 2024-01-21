@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
@@ -46,7 +47,7 @@ func (s *Middleware) StopRecording(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Middleware) IsRecording(w http.ResponseWriter, r *http.Request) {
-	isRecording := struct{ IsRecording bool }{
+	isRecording := models.IsRecordingResponse{
 		IsRecording: s.isRecording,
 	}
 
@@ -111,7 +112,7 @@ func (s *Middleware) Recorder(next http.Handler) http.Handler {
 			return
 		}
 
-		saveData := storages.RecordedDataInput{
+		saveData := models.RecordedDataInput{
 			Method:     r.Method,
 			Url:        r.URL.String(),
 			ReqHeader:  r.Header,
@@ -177,16 +178,7 @@ func (s *Middleware) Reproducer(next http.Handler) http.Handler {
 		actualResBody := newResponse.writtenData.Bytes()
 		s.storage.SaveReproduced(ulid, actualResBody, actualHeader)
 
-		res := struct {
-			IsSameResBody    bool
-			IsSameResHeader  bool
-			IsSameStatusCode bool
-			ActualResHeader  map[string][]string
-			ActualResBody    string
-			IsBodyText       bool
-			StatusCode       int
-			ActualResLength  int
-		}{
+		res := models.ReproducerResponse{
 			IsSameResBody:    bytes.Equal(actualResBody, savedResponseBody),
 			IsSameResHeader:  reflect.DeepEqual(actualHeader, savedMeta.ResHeader),
 			IsSameStatusCode: statusCode == savedMeta.StatusCode,
