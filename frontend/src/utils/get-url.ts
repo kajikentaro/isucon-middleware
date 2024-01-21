@@ -42,3 +42,7 @@ export function getRemoveAllURL() {
 export function getRemoveURL(ulid: string) {
   return `${ENDPOINT_URL}isumid/remove/${ulid}`;
 }
+
+export function getTotalTransactionsURL() {
+  return `${ENDPOINT_URL}isumid/total-transactions`;
+}

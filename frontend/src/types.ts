@@ -28,4 +28,8 @@ export interface IsRecording {
   IsRecording: boolean;
 }
 
+export interface TotalTransactions {
+  Count: number;
+}
+
 export type Header = { [key: string]: string[] };
