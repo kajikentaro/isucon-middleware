@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { State } from "..";
 
 export interface ComparisonPopup {
   isVisible: boolean;
@@ -26,8 +27,10 @@ const slice = createSlice({
   },
 });
 
-export const comparisonPopup = slice.reducer;
+export const comparisonPopup = slice;
 
-export const { selectComparisonPopup } = slice.selectors;
+export const { selectComparisonPopup } = slice.getSelectors(
+  (state: State) => state.ui.comparisonPopup
+);
 
 export const { showComparisonPopup, closeComparisonPopup } = slice.actions;

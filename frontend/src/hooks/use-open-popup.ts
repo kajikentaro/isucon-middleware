@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@/store";
-import { showComparisonPopup } from "@/store/comparison-popup";
+import { showComparisonPopup } from "@/store/ui/comparison-popup";
 
 export const POPUP_SEARCH_PARAM = "popup";
 

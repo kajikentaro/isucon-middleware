@@ -1,6 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import { comparisonPopup } from "./comparison-popup";
 import { executionProgress } from "./execution-progress";
 import { executionResponse } from "./execution-response";
 import { recordedTransaction } from "./recorded-transaction";
@@ -11,7 +10,6 @@ const store = configureStore({
     executionProgress,
     recordedTransaction,
     executionResponse,
-    comparisonPopup,
     ui,
   },
 });
