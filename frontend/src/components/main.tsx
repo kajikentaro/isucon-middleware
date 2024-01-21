@@ -25,7 +25,7 @@ export default function Main() {
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="flex w-full justify-between px-4 py-3 mb-2">
-        <Link href="/">
+        <Link href="/index.html">
           <h1 className="text-3xl font-bold">Isucon Middleware</h1>
         </Link>
         <div className="flex gap-x-5">
