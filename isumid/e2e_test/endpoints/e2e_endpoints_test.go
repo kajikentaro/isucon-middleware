@@ -45,24 +45,16 @@ func TestRecord(t *testing.T) {
 	requestBody := "Hello World"
 	url := URL_LIST.UrlOrigin + "/"
 	res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	// assert response
 	responseBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	expected := requestBody + " Response"
 	actual := string(responseBody)
-	if expected != actual {
-		t.Fatalf("response body is not correct: expected %s, actual %s", expected, actual)
-	}
+	assert.Exactly(t, expected, actual)
 }
 
 func TestFetchList(t *testing.T) {
@@ -104,17 +96,11 @@ func TestFetchResBody(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
 	res, err := http.Get(URL_LIST.ResBody + ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	actualBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	expectedBody := []byte("Hello World Response")
 	assert.Exactly(t, expectedBody, actualBody)
 
@@ -128,17 +114,11 @@ func TestFetchReqBody(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
 	res, err := http.Get(URL_LIST.ReqBody + ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	actualBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	expectedBody := []byte("Hello World")
 	assert.Exactly(t, expectedBody, actualBody)
 
@@ -152,22 +132,14 @@ func TestReproduce(t *testing.T) {
 	ulid := fetchFirstUlid(t)
 
 	res, err := http.Get(URL_LIST.Reproduce + ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	responseBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{"sample header":["sample header"]},"ActualResBody":"Hello World Response","IsBodyText":true,"StatusCode":200,"ActualResLength":20}`
 	actual := string(responseBody)
-	if expected != actual {
-		t.Fatalf("response body is not correct: expected %s, actual %s", expected, actual)
-	}
+	assert.Exactly(t, expected, actual)
 }
 
 func TestRemove(t *testing.T) {
@@ -179,12 +151,8 @@ func TestRemove(t *testing.T) {
 	transactions := utils.FetchList(t, PORT_NUMBER)
 
 	res, err := http.Get(URL_LIST.Remove + transactions[0].Ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	actual := utils.FetchList(t, PORT_NUMBER)
 	expected := transactions[1:]
@@ -199,12 +167,8 @@ func TestRemoveAll(t *testing.T) {
 	TestRecord(t)
 
 	res, err := http.Get(URL_LIST.RemoveAll)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	actual := utils.FetchList(t, PORT_NUMBER)
 	expected := []services.RecordedTransaction{}
@@ -219,17 +183,12 @@ func TestCount(t *testing.T) {
 	TestRecord(t)
 
 	res, err := http.Get(URL_LIST.Count)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
 	actual := models.Count{}
-	if err := json.NewDecoder(res.Body).Decode(&actual); err != nil {
-		t.Fatal(err)
-	}
+	err = json.NewDecoder(res.Body).Decode(&actual)
+	assert.NoError(t, err)
 	expected := models.Count{
 		Count: 3,
 	}

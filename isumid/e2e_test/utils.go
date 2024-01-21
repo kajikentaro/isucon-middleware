@@ -13,37 +13,30 @@ import (
 	"time"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
+	"github.com/stretchr/testify/assert"
 )
 
 func FetchList(t *testing.T, portNum int) []services.RecordedTransaction {
 	requestUrl := GetUrlList(portNum).List
 	u, err := url.Parse(requestUrl)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	q := u.Query()
 	q.Set("offset", "0")
 	q.Set("length", "20")
 	u.RawQuery = q.Encode()
 
 	res, err := http.Get(u.String())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	if res.StatusCode != 200 {
 		t.Fatal("status code is not 200")
 	}
 
 	responseBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	recordedTransactions := []services.RecordedTransaction{}
 	err = json.Unmarshal(responseBody, &recordedTransactions)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	return recordedTransactions
 }
 

@@ -39,16 +39,12 @@ func TestSave(t *testing.T) {
 
 	// test start
 	err := storage.Save(saveData)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 
 func getUlid(t *testing.T) string {
 	fileList, err := os.ReadDir(OUTPUT_DIR)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	parts := strings.Split(fileList[0].Name(), ".")
 	return parts[0]
@@ -61,9 +57,7 @@ func TestFetchMeta(t *testing.T) {
 
 	ulid := getUlid(t)
 	actual, err := storage.FetchMeta(ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := Meta{
 		Method:     "GET",
@@ -86,9 +80,7 @@ func TestFetchMetaList(t *testing.T) {
 	storage := New(setting)
 
 	actual, err := storage.FetchMetaList(0, 1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	// ignore ulid
 	actual[0].Ulid = ""
 
@@ -114,9 +106,7 @@ func TestFetchReqBody(t *testing.T) {
 
 	ulid := getUlid(t)
 	actual, err := storage.FetchReqBody(ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := []byte("Test Request Body")
 	assert.Exactly(t, expected, actual)
@@ -129,9 +119,7 @@ func TestFetchResBody(t *testing.T) {
 
 	ulid := getUlid(t)
 	actual, err := storage.FetchResBody(ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := []byte("Test Response Body")
 	assert.Exactly(t, expected, actual)
@@ -148,9 +136,7 @@ func TestSaveReproduced(t *testing.T) {
 		[]byte("Test Reproduced Body"),
 		map[string][]string{"Content-Type": {"text/plain"}},
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestFetchReproducedHeader(t *testing.T) {
@@ -160,9 +146,7 @@ func TestFetchReproducedHeader(t *testing.T) {
 
 	ulid := getUlid(t)
 	actual, err := storage.FetchReproducedHeader(ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := map[string][]string{"Content-Type": {"text/plain"}}
 	assert.Exactly(t, expected, actual)
@@ -175,9 +159,7 @@ func TestFetchReproducedBody(t *testing.T) {
 
 	ulid := getUlid(t)
 	actual, err := storage.FetchReproducedBody(ulid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := []byte("Test Reproduced Body")
 	assert.Exactly(t, expected, actual)
@@ -226,14 +208,10 @@ func TestCount(t *testing.T) {
 	storage := New(setting)
 
 	metaList, err := storage.FetchMetaList(0, 100)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	actual, err := storage.Count()
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := len(metaList)
 	assert.NotEqual(t, expected, 0, "expected should be more than 0 for better testing")
@@ -245,18 +223,14 @@ func TestRemove(t *testing.T) {
 	storage := New(setting)
 
 	metaList, err := storage.FetchMetaList(0, 100)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	if err := storage.Remove(metaList[0].Ulid); err != nil {
 		t.Fatal(err)
 	}
 
 	actual, err := storage.FetchMetaList(0, 100)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	expected := metaList[1:]
 	assert.True(t, reflect.DeepEqual(actual, expected))

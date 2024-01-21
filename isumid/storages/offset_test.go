@@ -32,9 +32,7 @@ func TestSave(t *testing.T) {
 	// test start
 	for i := 0; i < 20; i++ {
 		err := storage.Save(saveData)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 	}
 }
 
@@ -44,16 +42,12 @@ func TestFetchMetaList(t *testing.T) {
 	storage := storages.New(setting)
 
 	actual, err := storage.FetchMetaList(0, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	assert.Equal(t, 2, len(actual))
 
 	actual, err = storage.FetchMetaList(18, 3)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	assert.Equal(t, 2, len(actual))
 }

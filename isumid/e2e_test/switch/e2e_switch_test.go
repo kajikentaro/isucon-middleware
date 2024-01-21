@@ -75,21 +75,15 @@ func TestDoNotRecordOnStart(t *testing.T) {
 
 func fetchIsRecording(t *testing.T) bool {
 	res, err := http.Get(URL_LIST.IsRecording)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 	// Decode JSON response into a Person struct
 	var isRecording struct {
 		IsRecording bool
 	}
 	err = json.NewDecoder(res.Body).Decode(&isRecording)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	return isRecording.IsRecording
 }
@@ -112,13 +106,9 @@ func TestStartAndStopRecording(t *testing.T) {
 
 		// turn on recording
 		res, err := http.Post(URL_LIST.StartRecording, "text/plain", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			t.Fatal("status code is not 200")
-		}
+		assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 		sendSampleRequest(t)
 
@@ -134,13 +124,9 @@ func TestStartAndStopRecording(t *testing.T) {
 
 		// turn off recording
 		res, err := http.Post(URL_LIST.StopRecording, "text/plain", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			t.Fatal("status code is not 200")
-		}
+		assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 		sendSampleRequest(t)
 
@@ -176,13 +162,9 @@ func TestAutoStart(t *testing.T) {
 		requestBody := "Hello World"
 		url := URL_LIST.UrlOrigin + "/trigger/foo"
 		res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			t.Fatal("status code is not 200")
-		}
+		assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 		// fetch result
 		actual := len(utils.FetchList(t, PORT_NUMBER))
@@ -233,13 +215,9 @@ func TestAutoStop(t *testing.T) {
 		requestBody := "Hello World"
 		url := URL_LIST.UrlOrigin + "/trigger/foo"
 		res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
-		if err != nil {
-			t.Fatal(err)
-		}
+		assert.NoError(t, err)
 		defer res.Body.Close()
-		if res.StatusCode != 200 {
-			t.Fatal("status code is not 200")
-		}
+		assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 		// fetch result
 		actual := len(utils.FetchList(t, PORT_NUMBER))
@@ -271,24 +249,16 @@ func sendSampleRequest(t *testing.T) {
 	requestBody := "Hello World"
 	url := URL_LIST.UrlOrigin + "/"
 	res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 }
 
 func sendSampleRequestTrigger(t *testing.T) {
 	requestBody := "Hello World"
 	url := URL_LIST.UrlOrigin + "/trigger"
 	res, err := http.Post(url, "text/plain", bytes.NewBufferString(requestBody))
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		t.Fatal("status code is not 200")
-	}
+	assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 }
