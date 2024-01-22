@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   dev_go:
-    container_name: request_record_middleware_dev
+    container_name: isucon_middleware_go
     working_dir: /work
     image: golang:1.21.4-bullseye
     tty: true
@@ -13,7 +13,7 @@ services:
     profiles:
       - dev
   dev_front:
-    container_name: request_record_middleware_dev_front
+    container_name: isucon_middleware_node
     working_dir: /work
     image: node:20.10-bullseye
     tty: true
