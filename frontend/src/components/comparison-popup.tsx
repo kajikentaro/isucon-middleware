@@ -82,24 +82,24 @@ function ModalContents() {
   return (
     <div>
       <Request
-        statusCode={recordedTransaction.StatusCode}
+        statusCode={recordedTransaction.statusCode}
         ulid={popupState.ulid}
-        body={recordedTransaction.ReqBody}
-        header={recordedTransaction.ReqHeader}
-        isText={recordedTransaction.IsReqText}
-        contentLength={recordedTransaction.ReqLength}
+        body={recordedTransaction.reqBody}
+        header={recordedTransaction.reqHeader}
+        isText={recordedTransaction.isReqText}
+        contentLength={recordedTransaction.reqLength}
       />
       <span className="mb-4 h-0.5 bg-gray-300 block" />
       <div className="flex justify-center">
         <div className="w-full flex">
           <Response
             transaction={{
-              statusCode: recordedTransaction.StatusCode,
+              statusCode: recordedTransaction.statusCode,
               ulid: popupState.ulid,
-              body: recordedTransaction.ResBody,
-              header: recordedTransaction.ResHeader,
-              isText: recordedTransaction.IsResText,
-              contentLength: recordedTransaction.ResLength,
+              body: recordedTransaction.resBody,
+              header: recordedTransaction.resHeader,
+              isText: recordedTransaction.isResText,
+              contentLength: recordedTransaction.resLength,
             }}
             type="res-body"
             title="Recorded Response"
@@ -108,12 +108,12 @@ function ModalContents() {
           {executionResponse ? (
             <Response
               transaction={{
-                statusCode: executionResponse.StatusCode,
+                statusCode: executionResponse.statusCode,
                 ulid: popupState.ulid,
-                body: executionResponse.ActualResBody,
-                header: executionResponse.ActualResHeader,
-                isText: executionResponse.IsBodyText,
-                contentLength: executionResponse.ActualResLength,
+                body: executionResponse.actualResBody,
+                header: executionResponse.actualResHeader,
+                isText: executionResponse.isBodyText,
+                contentLength: executionResponse.actualResLength,
               }}
               type="reproduced-res-body"
               title="Actual Response"

@@ -1,35 +1,35 @@
 export interface RecordedTransaction {
-  IsReqText: boolean;
-  IsResText: boolean;
-  StatusCode: number;
-  Ulid: string;
-  ResBody: string;
-  ResHeader: Header;
-  ReqBody: string;
-  Url: string;
-  ReqHeader: Header;
-  Method: string;
-  ReqLength: number;
-  ResLength: number;
+  isReqText: boolean;
+  isResText: boolean;
+  statusCode: number;
+  ulid: string;
+  resBody: string;
+  resHeader: Header;
+  reqBody: string;
+  url: string;
+  reqHeader: Header;
+  method: string;
+  reqLength: number;
+  resLength: number;
 }
 
 export interface ExecutionResponse {
-  IsSameResBody: true;
-  IsSameResHeader: true;
-  IsSameStatusCode: true;
-  ActualResHeader: Header;
-  ActualResBody: string;
-  IsBodyText: boolean;
-  StatusCode: number;
-  ActualResLength: number;
+  isSameResBody: true;
+  isSameResHeader: true;
+  isSameStatusCode: true;
+  actualResHeader: Header;
+  actualResBody: string;
+  isBodyText: boolean;
+  statusCode: number;
+  actualResLength: number;
 }
 
 export interface IsRecording {
-  IsRecording: boolean;
+  isRecording: boolean;
 }
 
 export interface TotalTransactions {
-  Count: number;
+  count: number;
 }
 
 export type Header = { [key: string]: string[] };

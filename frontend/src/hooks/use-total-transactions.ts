@@ -14,7 +14,7 @@ export function useFetchTotalTransactions() {
     dispatch(setTotalTransactions(-1));
     const res = await fetch(getTotalTransactionsURL());
     const json = (await res.json()) as TotalTransactions;
-    const count = json.Count;
+    const count = json.count;
     dispatch(setTotalTransactions(count));
   };
 

@@ -27,7 +27,7 @@ export function useFetchRecordedTransactions() {
 
     const progressMap: ExecutionProgressMap = {};
     for (const progress of json) {
-      progressMap[progress.Ulid] = "init";
+      progressMap[progress.ulid] = "init";
     }
     dispatch(setExecutionProgressAll(progressMap));
 

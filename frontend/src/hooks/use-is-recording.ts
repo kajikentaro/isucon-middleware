@@ -15,7 +15,7 @@ export function useIsRecording() {
   const updateStatus = async () => {
     const res = await fetch(getIsRecordingURL());
     const json = (await res.json()) as IsRecording;
-    setRecordingStatus(json.IsRecording ? "recording" : "not-recording");
+    setRecordingStatus(json.isRecording ? "recording" : "not-recording");
   };
 
   const startRecording = async () => {

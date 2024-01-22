@@ -135,8 +135,19 @@ func TestReproduce(t *testing.T) {
 
 	responseBody, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
-	expected := `{"IsSameResBody":true,"IsSameResHeader":true,"IsSameStatusCode":true,"ActualResHeader":{"sample header":["sample header"]},"ActualResBody":"Hello World Response","IsBodyText":true,"StatusCode":200,"ActualResLength":20}`
-	actual := string(responseBody)
+	expected := models.ReproducerResponse{
+		IsSameResBody:    true,
+		IsSameResHeader:  true,
+		IsSameStatusCode: true,
+		ActualResHeader:  http.Header{"sample header": []string{"sample header"}},
+		ActualResBody:    "Hello World Response",
+		IsBodyText:       true,
+		StatusCode:       200,
+		ActualResLength:  20,
+	}
+	actual := models.ReproducerResponse{}
+	err = json.Unmarshal(responseBody, &actual)
+	assert.NoError(t, err)
 	assert.Exactly(t, expected, actual)
 }
 

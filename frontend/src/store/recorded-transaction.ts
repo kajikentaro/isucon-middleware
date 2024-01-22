@@ -14,7 +14,7 @@ const slice = createSlice({
     ) => {
       const newState: typeof state = {};
       for (const v of action.payload) {
-        newState[v.Ulid] = v;
+        newState[v.ulid] = v;
       }
       return newState;
     },

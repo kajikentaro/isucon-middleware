@@ -24,7 +24,7 @@ export function execute(ulid: string) {
         })
       );
 
-      if (!json.IsSameStatusCode) {
+      if (!json.isSameStatusCode) {
         dispatch(
           setExecutionProgress({
             ulid,
@@ -33,7 +33,7 @@ export function execute(ulid: string) {
         );
         return;
       }
-      if (!json.IsSameResBody) {
+      if (!json.isSameResBody) {
         dispatch(
           setExecutionProgress({
             ulid,
@@ -42,7 +42,7 @@ export function execute(ulid: string) {
         );
         return;
       }
-      if (!json.IsSameResHeader) {
+      if (!json.isSameResHeader) {
         dispatch(
           setExecutionProgress({
             ulid,

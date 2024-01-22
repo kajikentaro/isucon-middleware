@@ -18,8 +18,8 @@ export default function TableRow(props: Props) {
   const { onCheckboxClick, isSelected, ulid } = props;
 
   const item = useAppSelector(selectRecordedTransaction(ulid));
-  const onExecute = useExecute(item.Ulid);
-  const openPopup = useOpenPopup(item.Ulid);
+  const onExecute = useExecute(item.ulid);
+  const openPopup = useOpenPopup(item.ulid);
 
   return (
     <tr className="border-b hover:bg-gray-100" onClick={openPopup}>
@@ -30,37 +30,37 @@ export default function TableRow(props: Props) {
           }`}
         />
       </td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.Method}</td>
+      <td className="px-4 py-2 whitespace-nowrap">{item.method}</td>
       <td className="px-4 py-2 whitespace-nowrap max-w-lg overflow-hidden">
-        {item.Url}
+        {item.url}
       </td>
       <td className="px-4 whitespace-nowrap overflow-hidden max-w-0">
-        {item.IsReqText ? (
-          <Code isInline>{item.ReqBody}</Code>
+        {item.isReqText ? (
+          <Code isInline>{item.reqBody}</Code>
         ) : (
           <TagBinary
             ulid={ulid}
             type="req-body"
-            contentLength={item.ReqLength}
+            contentLength={item.reqLength}
           />
         )}
       </td>
       <td className="px-4 py-2 whitespace-nowrap">
-        {item.StatusCode.toString()}
+        {item.statusCode.toString()}
       </td>
       <td className="px-4 py-2 whitespace-nowrap overflow-hidden max-w-0">
-        {item.IsResText ? (
-          <Code isInline>{item.ResBody}</Code>
+        {item.isResText ? (
+          <Code isInline>{item.resBody}</Code>
         ) : (
           <TagBinary
             ulid={ulid}
             type="res-body"
-            contentLength={item.ResLength}
+            contentLength={item.resLength}
           />
         )}
       </td>
       <td className="px-4 whitespace-nowrap text-center">
-        <ProgressIcon ulid={item.Ulid} />
+        <ProgressIcon ulid={item.ulid} />
       </td>
       <td className="px-4 whitespace-nowrap">
         <button
