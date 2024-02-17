@@ -12,6 +12,10 @@ Make it easy to debug Isucon!
 
 ## How to install
 
+```
+go get github.com/kajikentaro/isucon-middleware/isumid
+```
+
 Here are several examples to install Isucon Middleware to your applications depends on each web framework.
 
 NOTE:
