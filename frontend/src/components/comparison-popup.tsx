@@ -1,7 +1,10 @@
 import { useExecute } from "@/hooks/use-execute";
 import Code from "@/parts/code";
+import { ExecuteButton } from "@/parts/execute-button";
+import ProgressIcon from "@/parts/progress-icon";
 import { TagBinary } from "@/parts/tag-binary";
 import { useAppDispatch, useAppSelector } from "@/store";
+import { selectExecutionProgress } from "@/store/execution-progress";
 import { selectExecutionResponse } from "@/store/execution-response";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
 import {
@@ -9,6 +12,7 @@ import {
   selectComparisonPopup,
 } from "@/store/ui/comparison-popup";
 import { Header } from "@/types";
+import { shouldBeNever } from "@/utils/assert-never";
 import { BodyType } from "@/utils/get-url";
 import { stringifyHeader } from "@/utils/stringify-header";
 import { useEffect } from "react";
@@ -21,10 +25,10 @@ export default function ComparisonPopup() {
   }
 
   // split main content to avoid conditional call of useEffect
-  return <ComparisonPopupMain />;
+  return <ComparisonPopupContainer />;
 }
 
-function ComparisonPopupMain() {
+function ComparisonPopupContainer() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -74,10 +78,6 @@ function ModalContents() {
   const recordedTransaction = useAppSelector(
     selectRecordedTransaction(popupState.ulid)
   );
-  const executionResponse = useAppSelector(
-    selectExecutionResponse(popupState.ulid)
-  );
-  const onExecute = useExecute(popupState.ulid);
 
   return (
     <div>
@@ -102,40 +102,86 @@ function ModalContents() {
               contentLength: recordedTransaction.resLength,
             }}
             type="res-body"
-            title="Recorded Response"
+            title={
+              <h3 className="text-lg font-semibold my-2">Recorded Response</h3>
+            }
           />
           <span className="w-0.5 bg-gray-300" />
-          {executionResponse ? (
-            <Response
-              transaction={{
-                statusCode: executionResponse.statusCode,
-                ulid: popupState.ulid,
-                body: executionResponse.actualResBody,
-                header: executionResponse.actualResHeader,
-                isText: executionResponse.isBodyText,
-                contentLength: executionResponse.actualResLength,
-              }}
-              type="reproduced-res-body"
-              title="Actual Response"
-            />
-          ) : (
-            <div className="w-1/2 p-4 rounded-md mb-4">
-              <p>This transaction have not been executed yet</p>
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full mt-10 m-auto block"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onExecute();
-                }}
-              >
-                Execute
-              </button>
-            </div>
-          )}
+          <ActualResponse />
         </div>
       </div>
     </div>
   );
+}
+
+function ActualResponse() {
+  const popupState = useAppSelector(selectComparisonPopup);
+  const executionResponse = useAppSelector(
+    selectExecutionResponse(popupState.ulid)
+  );
+  const executionProgress = useAppSelector(
+    selectExecutionProgress(popupState.ulid)
+  );
+
+  const onExecute = useExecute(popupState.ulid);
+
+  const onExecuteClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    onExecute();
+  };
+
+  switch (executionProgress) {
+    case "init":
+      return (
+        <div className="w-1/2 p-4 rounded-md mb-4">
+          <p>This transaction have not been executed yet</p>
+          <div className="mt-10 flex justify-center">
+            <ExecuteButton onClick={onExecuteClick}>Execute</ExecuteButton>
+          </div>
+        </div>
+      );
+    case "fail":
+    case "waitingResponse":
+    case "waitingQueue":
+      return (
+        <div className="w-1/2 p-4 rounded-md mb-4">
+          <p>Executing</p>
+          <div className="py-2 px-2 mt-10 flex justify-center">
+            <ProgressIcon ulid={popupState.ulid} />
+          </div>
+        </div>
+      );
+    case "bodyNotSame":
+    case "headerNotSame":
+    case "statusCodeNotSame":
+    case "success":
+      return (
+        <Response
+          transaction={{
+            statusCode: executionResponse.statusCode,
+            ulid: popupState.ulid,
+            body: executionResponse.actualResBody,
+            header: executionResponse.actualResHeader,
+            isText: executionResponse.isBodyText,
+            contentLength: executionResponse.actualResLength,
+          }}
+          type="reproduced-res-body"
+          title={
+            <div className="flex flex-row gap-3 items-center">
+              <h3 className="text-lg font-semibold my-2">Actual Response</h3>
+              <ProgressIcon ulid={popupState.ulid} />
+              <div className="ml-auto">
+                <ExecuteButton onClick={onExecuteClick}>
+                  Execute Again
+                </ExecuteButton>
+              </div>
+            </div>
+          }
+        />
+      );
+    default:
+      shouldBeNever(executionProgress);
+  }
 }
 
 interface TransactionProps {
@@ -171,7 +217,7 @@ function Request(props: TransactionProps) {
 
 function Response(props: {
   transaction: TransactionProps;
-  title: string;
+  title: JSX.Element;
   type: BodyType;
 }) {
   const {
@@ -181,7 +227,7 @@ function Response(props: {
   } = props;
   return (
     <div className="w-1/2 p-4 rounded-md mb-4">
-      <h3 className="text-lg font-semibold my-2">{title}</h3>
+      {title}
       <p>Response Header:</p>
       <Code>{stringifyHeader(header)}</Code>
       <p>Status Code:</p>

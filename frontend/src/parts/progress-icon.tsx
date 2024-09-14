@@ -27,15 +27,15 @@ export default function ProgressIcon(props: Props) {
   switch (status) {
     case "statusCodeNotSame":
       icon = <AiOutlineWarning {...commonProps} color="red" />;
-      tooltipText = "Status code doesn't match";
+      tooltipText = "Status code was not same";
       break;
     case "bodyNotSame":
       icon = <AiOutlineCheckCircle {...commonProps} color="red" />;
-      tooltipText = "Response body doesn't match";
+      tooltipText = "Response body was not same";
       break;
     case "headerNotSame":
       icon = <AiOutlineCheckCircle {...commonProps} color="orange" />;
-      tooltipText = "Headers don't match";
+      tooltipText = "Headers were not same";
       break;
 
     case "waitingResponse":
@@ -47,6 +47,7 @@ export default function ProgressIcon(props: Props) {
       break;
     case "success":
       icon = <AiOutlineCheckCircle {...commonProps} color="green" />;
+      tooltipText = "Response body and headers were same";
       break;
     case "waitingQueue":
       icon = <ThreeDotsAnimation {...commonProps} />;

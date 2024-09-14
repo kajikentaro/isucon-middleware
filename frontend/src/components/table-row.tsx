@@ -2,6 +2,7 @@
 import { useExecute } from "@/hooks/use-execute";
 import { useOpenPopup } from "@/hooks/use-open-popup";
 import Code from "@/parts/code";
+import { ExecuteButton } from "@/parts/execute-button";
 import { TagBinary } from "@/parts/tag-binary";
 import { useAppSelector } from "@/store";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
@@ -63,8 +64,7 @@ export default function TableRow(props: Props) {
         <ProgressIcon ulid={item.ulid} />
       </td>
       <td className="px-4 whitespace-nowrap">
-        <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full flex items-center m-auto"
+        <ExecuteButton
           onClick={(e) => {
             e.stopPropagation();
             onExecute();
@@ -84,7 +84,7 @@ export default function TableRow(props: Props) {
               d="M9 5l8 8-8 8"
             />
           </svg>
-        </button>
+        </ExecuteButton>
       </td>
     </tr>
   );
