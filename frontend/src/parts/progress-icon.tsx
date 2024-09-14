@@ -1,8 +1,12 @@
 "use client";
 import ThreeDotsAnimation from "@/parts/3-dots-animation";
 import { useAppSelector } from "@/store";
-import { selectExecutionProgressMap } from "@/store/execution-progress";
+import {
+  ExecutionProgress,
+  selectExecutionProgress,
+} from "@/store/execution-progress";
 import { shouldBeNever } from "@/utils/assert-never";
+import { IconBaseProps } from "react-icons";
 import {
   AiOutlineCheckCircle,
   AiOutlineCloseCircle,
@@ -15,10 +19,10 @@ interface Props {
 }
 
 export default function ProgressIcon(props: Props) {
-  const status =
-    useAppSelector(selectExecutionProgressMap)[props.ulid] || "fail";
+  const status: ExecutionProgress =
+    useAppSelector(selectExecutionProgress(props.ulid)) || "fail";
 
-  const commonProps: (typeof AiOutlineLoading)["Props"] = {
+  const commonProps: IconBaseProps = {
     size: "25",
   };
   let icon = <></>;
