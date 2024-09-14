@@ -1,8 +1,8 @@
 "use client";
 import TableRow from "@/components/table-row";
-import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectRecordedTransactionUlids } from "@/store/recorded-transaction";
+import { selectIsFetchingTransactions } from "@/store/ui/is-fetching-transactions";
 import {
   selectSelectedUlids,
   setSelectedUlids,
@@ -11,7 +11,7 @@ import { MouseEvent, useState } from "react";
 import TableHeader from "./table-header";
 
 export default function Table() {
-  const { isFetchingTransactions } = useFetchRecordedTransactions();
+  const isFetchingTransactions = useAppSelector(selectIsFetchingTransactions);
   const selectedUlids = useAppSelector(selectSelectedUlids);
   const dispatch = useAppDispatch();
   const recordedTransactionUlids = useAppSelector(

@@ -1,3 +1,8 @@
+export interface SearchResponse {
+  transactions: RecordedTransaction[];
+  totalHit: number;
+}
+
 export interface RecordedTransaction {
   isReqText: boolean;
   isResText: boolean;

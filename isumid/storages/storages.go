@@ -154,10 +154,10 @@ func (s Storage) FetchMetaList(offset, length int) ([]models.Meta, error) {
 
 	res := []models.Meta{}
 	for idx, file := range metaList {
-		if idx < offset {
+		if idx+1 <= offset {
 			continue
 		}
-		if offset+length <= idx {
+		if offset+length < idx+1 {
 			break
 		}
 

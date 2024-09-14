@@ -1,7 +1,6 @@
 "use client";
-import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
-import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
+import { fetchTransactions } from "@/actions/fetch-transactions";
+import { useAppDispatch } from "@/store";
 import Link from "next/link";
 import { useEffect } from "react";
 import ExecuteCheckedButton from "./execute-checked-button";
@@ -12,15 +11,12 @@ import StartRecordingButton from "./start-recording-button";
 import Table from "./table";
 
 export default function Main() {
-  const { fetchTransactions } = useFetchRecordedTransactions();
-  const { fetchTotalTransactions } = useFetchTotalTransactions();
-  const currentPageNum = useCurrentPageNum();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    fetchTransactions(currentPageNum);
-    fetchTotalTransactions();
+    dispatch(fetchTransactions());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPageNum]);
+  }, []);
 
   return (
     <div className="flex flex-col justify-center items-center">

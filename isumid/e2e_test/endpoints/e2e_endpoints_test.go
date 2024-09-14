@@ -15,6 +15,7 @@ import (
 	"github.com/kajikentaro/isucon-middleware/isumid"
 	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/services"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/stretchr/testify/assert"
 )
@@ -55,39 +56,42 @@ func TestRecord(t *testing.T) {
 	assert.Exactly(t, expected, actual)
 }
 
-func TestFetchList(t *testing.T) {
-	actual := utils.FetchList(t, PORT_NUMBER)
-	actual[0].Ulid = ""
+func TestSearchWithoutFilter(t *testing.T) {
+	actual := utils.SearchTransactions(t, PORT_NUMBER, "")
+	actual.Transactions[0].Ulid = ""
 
-	expected := []models.RecordedTransaction{{
-		ResBody: "Hello World Response",
-		ReqBody: "Hello World",
-		Meta: models.Meta{
-			Url: "/",
-			ReqHeader: map[string][]string{
-				"Accept-Encoding": {"gzip"},
-				"Content-Length":  {"11"},
-				"Content-Type":    {"text/plain"},
-				"User-Agent":      {"Go-http-client/1.1"},
+	expected := services.SearchResponse{
+		Transactions: []models.RecordedTransaction{{
+			ResBody: "Hello World Response",
+			ReqBody: "Hello World",
+			Meta: models.Meta{
+				Url: "/",
+				ReqHeader: map[string][]string{
+					"Accept-Encoding": {"gzip"},
+					"Content-Length":  {"11"},
+					"Content-Type":    {"text/plain"},
+					"User-Agent":      {"Go-http-client/1.1"},
+				},
+				Method: "POST",
+				ResHeader: map[string][]string{
+					"sample header": {"sample header"},
+				},
+				IsReqText:  true,
+				IsResText:  true,
+				StatusCode: 200,
+				Ulid:       "",
+				ReqLength:  11,
+				ResLength:  20,
 			},
-			Method: "POST",
-			ResHeader: map[string][]string{
-				"sample header": {"sample header"},
-			},
-			IsReqText:  true,
-			IsResText:  true,
-			StatusCode: 200,
-			Ulid:       "",
-			ReqLength:  11,
-			ResLength:  20,
-		},
-	}}
+		}},
+		TotalHit: 1,
+	}
 
 	assert.Exactly(t, expected, actual)
 }
 
 func fetchFirstUlid(t *testing.T) string {
-	return utils.FetchList(t, 8081)[0].Ulid
+	return utils.FetchAllTransactions(t, 8081)[0].Ulid
 }
 
 func TestFetchResBody(t *testing.T) {
@@ -157,13 +161,13 @@ func TestRemove(t *testing.T) {
 	TestRecord(t)
 	TestRecord(t)
 
-	transactions := utils.FetchList(t, PORT_NUMBER)
+	transactions := utils.FetchAllTransactions(t, PORT_NUMBER)
 
 	res, err := http.Get(URL_LIST.Remove + transactions[0].Ulid)
 	assert.NoError(t, err)
 	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
-	actual := utils.FetchList(t, PORT_NUMBER)
+	actual := utils.FetchAllTransactions(t, PORT_NUMBER)
 	expected := transactions[1:]
 
 	assert.True(t, reflect.DeepEqual(actual, expected))
@@ -179,7 +183,7 @@ func TestRemoveAll(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
-	actual := utils.FetchList(t, PORT_NUMBER)
+	actual := utils.FetchAllTransactions(t, PORT_NUMBER)
 	expected := []models.RecordedTransaction{}
 
 	assert.True(t, reflect.DeepEqual(actual, expected))
@@ -191,16 +195,12 @@ func TestFetchTotalTransactions(t *testing.T) {
 	TestRecord(t)
 	TestRecord(t)
 
-	res, err := http.Get(URL_LIST.TotalTransactions)
+	res, err := http.Get(URL_LIST.Search)
 	assert.NoError(t, err)
 	assert.Exactly(t, 200, res.StatusCode, "status code should be 200")
 
-	actual := models.FetchTotalTransactionsResponse{}
+	var actual services.SearchResponse
 	err = json.NewDecoder(res.Body).Decode(&actual)
 	assert.NoError(t, err)
-	expected := models.FetchTotalTransactionsResponse{
-		Count: 3,
-	}
-
-	assert.True(t, reflect.DeepEqual(actual, expected))
+	assert.Equal(t, 3, actual.TotalHit)
 }

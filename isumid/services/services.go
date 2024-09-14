@@ -2,7 +2,9 @@ package services
 
 import (
 	"fmt"
+	"math"
 	"os"
+	"strings"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
@@ -16,13 +18,71 @@ func New(storage storages.Storage) Service {
 	return Service{storage: storage}
 }
 
-func (s Service) FetchList(offset, length int) ([]models.RecordedTransaction, error) {
+type SearchResponse struct {
+	Transactions []models.RecordedTransaction `json:"transactions"`
+	TotalHit     int                          `json:"totalHit"`
+}
+
+func (s Service) Search(query string, offset, length int) (*SearchResponse, error) {
+	if query == "" {
+		// don't filter for the performance
+		return s.fetchList(offset, length)
+	}
+
+	MetaList, err := s.storage.FetchMetaList(0, math.MaxInt)
+	if err != nil {
+		return nil, err
+	}
+
+	totalHit := 0
+	transactions := []models.RecordedTransaction{}
+	for _, meta := range MetaList {
+		transaction := models.RecordedTransaction{Meta: meta}
+		if !strings.Contains(meta.Url, query) {
+			continue
+		}
+
+		totalHit++
+		if totalHit <= offset {
+			continue
+		}
+		if offset+length < totalHit {
+			continue
+		}
+
+		if meta.IsReqText {
+			body, err := s.storage.FetchReqBody(meta.Ulid)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to read req body", meta.Ulid)
+				continue
+			}
+			transaction.ReqBody = string(body)
+		}
+		if meta.IsResText {
+			body, err := s.storage.FetchResBody(meta.Ulid)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to read res body", meta.Ulid)
+				continue
+			}
+			transaction.ResBody = string(body)
+		}
+
+		transactions = append(transactions, transaction)
+	}
+
+	return &SearchResponse{
+		Transactions: transactions,
+		TotalHit:     totalHit,
+	}, nil
+}
+
+func (s Service) fetchList(offset, length int) (*SearchResponse, error) {
 	MetaList, err := s.storage.FetchMetaList(offset, length)
 	if err != nil {
 		return nil, err
 	}
 
-	result := []models.RecordedTransaction{}
+	transactions := []models.RecordedTransaction{}
 	for _, meta := range MetaList {
 		transaction := models.RecordedTransaction{Meta: meta}
 		if meta.IsReqText {
@@ -42,10 +102,18 @@ func (s Service) FetchList(offset, length int) ([]models.RecordedTransaction, er
 			transaction.ResBody = string(body)
 		}
 
-		result = append(result, transaction)
+		transactions = append(transactions, transaction)
 	}
 
-	return result, nil
+	totalHit, err := s.storage.FetchTotalTransactions()
+	if err != nil {
+		return nil, err
+	}
+
+	return &SearchResponse{
+		Transactions: transactions,
+		TotalHit:     totalHit,
+	}, nil
 }
 
 func (s Service) FetchReqBody(ulid string) (models.FetchBodyResponse, error) {

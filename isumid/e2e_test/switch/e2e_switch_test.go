@@ -41,12 +41,12 @@ func TestRecordOnStart(t *testing.T) {
 	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
-	previousExpected := len(utils.FetchList(t, PORT_NUMBER))
+	previousExpected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 	sendSampleRequest(t)
 
 	// fetch result
-	actual := len(utils.FetchList(t, PORT_NUMBER))
+	actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 	expected := previousExpected + 1
 	assert.Equal(t, expected, actual)
 }
@@ -64,12 +64,12 @@ func TestDoNotRecordOnStart(t *testing.T) {
 	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
-	previousExpected := len(utils.FetchList(t, PORT_NUMBER))
+	previousExpected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 	sendSampleRequest(t)
 
 	// fetch result
-	actual := len(utils.FetchList(t, PORT_NUMBER))
+	actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 	expected := previousExpected
 	assert.Equal(t, expected, actual)
 }
@@ -100,7 +100,7 @@ func TestStartAndStopRecording(t *testing.T) {
 	defer utils.StopServer(srv)
 
 	{
-		previousExpected := len(utils.FetchList(t, 8082))
+		previousExpected := len(utils.FetchAllTransactions(t, 8082))
 
 		// turn on recording
 		res, err := http.Post(URL_LIST.StartRecording, "text/plain", nil)
@@ -111,14 +111,14 @@ func TestStartAndStopRecording(t *testing.T) {
 		sendSampleRequest(t)
 
 		// fetch result
-		actual := len(utils.FetchList(t, 8082))
+		actual := len(utils.FetchAllTransactions(t, 8082))
 		expected := previousExpected + 1
 		assert.Equal(t, expected, actual)
 		assert.Equal(t, true, fetchIsRecording(t))
 	}
 
 	{
-		previousExpected := len(utils.FetchList(t, PORT_NUMBER))
+		previousExpected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 		// turn off recording
 		res, err := http.Post(URL_LIST.StopRecording, "text/plain", nil)
@@ -129,7 +129,7 @@ func TestStartAndStopRecording(t *testing.T) {
 		sendSampleRequest(t)
 
 		// fetch result
-		actual := len(utils.FetchList(t, PORT_NUMBER))
+		actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 		expected := previousExpected
 		assert.Equal(t, expected, actual)
 		assert.Equal(t, false, fetchIsRecording(t))
@@ -154,7 +154,7 @@ func TestAutoStart(t *testing.T) {
 	defer utils.StopServer(srv)
 
 	{
-		previousExpected := len(utils.FetchList(t, PORT_NUMBER))
+		previousExpected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 		// send superfluous request
 		requestBody := "Hello World"
@@ -165,13 +165,13 @@ func TestAutoStart(t *testing.T) {
 		assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 		// fetch result
-		actual := len(utils.FetchList(t, PORT_NUMBER))
+		actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 		expected := previousExpected
 		assert.Equal(t, expected, actual)
 	}
 
 	{
-		expected := len(utils.FetchList(t, PORT_NUMBER))
+		expected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 		// send request that is trigger to turn off recording after 1 sec
 		sendSampleRequestTrigger(t)
@@ -184,7 +184,7 @@ func TestAutoStart(t *testing.T) {
 		expected++
 
 		// fetch result
-		actual := len(utils.FetchList(t, PORT_NUMBER))
+		actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 		assert.Equal(t, expected, actual)
 	}
 }
@@ -207,7 +207,7 @@ func TestAutoStop(t *testing.T) {
 	defer utils.StopServer(srv)
 
 	{
-		previousExpected := len(utils.FetchList(t, PORT_NUMBER))
+		previousExpected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 		// send superfluous request
 		requestBody := "Hello World"
@@ -218,13 +218,13 @@ func TestAutoStop(t *testing.T) {
 		assert.Equal(t, 200, res.StatusCode, "status code should be 200")
 
 		// fetch result
-		actual := len(utils.FetchList(t, PORT_NUMBER))
+		actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 		expected := previousExpected + 1
 		assert.Equal(t, expected, actual)
 	}
 
 	{
-		expected := len(utils.FetchList(t, PORT_NUMBER))
+		expected := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 
 		// send request that is trigger to turn off recording after 1 sec
 		sendSampleRequestTrigger(t)
@@ -238,7 +238,7 @@ func TestAutoStop(t *testing.T) {
 		sendSampleRequest(t)
 
 		// fetch result
-		actual := len(utils.FetchList(t, PORT_NUMBER))
+		actual := len(utils.FetchAllTransactions(t, PORT_NUMBER))
 		assert.Equal(t, expected, actual)
 	}
 }

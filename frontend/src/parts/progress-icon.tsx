@@ -63,17 +63,17 @@ export default function ProgressIcon(props: Props) {
   }
 
   return (
-    <div className="relative inline-flex align-middle text-center">
+    <div className="PROGRESS_ICON relative inline-flex align-middle text-center">
       {icon}
 
       {tooltipText && (
         <>
-          <div className="opacity-0 pointer-events-none absolute z-10 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap top-full -left-1/2 transform -translate-x-1/2 transition-opacity duration-300">
+          <div className="PROGRESS_TOOLTIP opacity-0 pointer-events-none absolute z-10 bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap top-full -left-1/2 transform -translate-x-1/2 transition-opacity duration-300">
             {tooltipText}
           </div>
           <style>
             {`
-          .relative:hover .absolute {
+          .PROGRESS_ICON:hover .PROGRESS_TOOLTIP {
             opacity: 1;
           }
           `}

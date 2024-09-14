@@ -1,24 +1,26 @@
+import { fetchTransactions } from "@/actions/fetch-transactions";
 import { MAX_ROW_LENGTH } from "@/constants";
-import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
-import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
+import { usePageParams } from "@/hooks/use-page-params";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { selectTotalTransactions } from "@/store/total-transactions";
+import { selectIsFetchingTransactions } from "@/store/ui/is-fetching-transactions";
 import Link from "next/link";
 
 // the number of active buttons before and after the current page
 const ACTIVE_BUTTON_LENGTH = 2;
 
 export default function Pagination() {
-  const { isFetchingTransactions } = useFetchRecordedTransactions();
-  const { totalTransactions } = useFetchTotalTransactions();
+  const isFetchingTransactions = useAppSelector(selectIsFetchingTransactions);
+  const totalTransactions = useAppSelector(selectTotalTransactions);
   const maxPageNum = Math.ceil(totalTransactions / MAX_ROW_LENGTH);
-  const { fetchTransactions } = useFetchRecordedTransactions();
-  const currentPageNum = useCurrentPageNum();
+  const { page: currentPageNum, query } = usePageParams();
+  const dispatch = useAppDispatch();
 
   const getLinkProps = (pageNum: number) => ({
     href: {
-      query: { page: pageNum },
+      query: { page: pageNum, query },
     },
-    onClick: () => fetchTransactions(pageNum),
+    onClick: () => dispatch(fetchTransactions(pageNum)),
   });
 
   const shouldShow = (pageNum: number) => {

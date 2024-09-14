@@ -6,7 +6,7 @@ import { ExecuteButton } from "@/parts/execute-button";
 import { TagBinary } from "@/parts/tag-binary";
 import { useAppSelector } from "@/store";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
-import { MouseEvent } from "react";
+import { MouseEvent, ReactNode } from "react";
 import ProgressIcon from "../parts/progress-icon";
 
 interface Props {
@@ -15,6 +15,8 @@ interface Props {
   isSelected: boolean;
 }
 
+const MAX_BODY_CHARACTER = 150;
+
 export default function TableRow(props: Props) {
   const { onCheckboxClick, isSelected, ulid } = props;
 
@@ -22,22 +24,24 @@ export default function TableRow(props: Props) {
   const onExecute = useExecute(item.ulid);
   const openPopup = useOpenPopup(item.ulid);
 
+  const classNameTd = "px-2 py-1 whitespace-nowrap max-w-0";
+
   return (
     <tr className="border-b hover:bg-gray-100" onClick={openPopup}>
-      <td className="px-4 py-2 whitespace-nowrap" onClick={onCheckboxClick}>
-        <div
-          className={`w-3 h-3 border  rounded m-auto block ${
-            isSelected ? "bg-blue-500 border-blue-500" : " border-gray-500"
-          }`}
-        />
+      <td className={classNameTd} onClick={onCheckboxClick}>
+        <Center>
+          <div
+            className={`w-3 h-3 border  rounded m-auto block ${
+              isSelected ? "bg-blue-500 border-blue-500" : " border-gray-500"
+            }`}
+          />
+        </Center>
       </td>
-      <td className="px-4 py-2 whitespace-nowrap">{item.method}</td>
-      <td className="px-4 py-2 whitespace-nowrap max-w-lg overflow-hidden">
-        {item.url}
-      </td>
-      <td className="px-4 whitespace-nowrap overflow-hidden max-w-0">
+      <td className={classNameTd}>{item.method}</td>
+      <td className={classNameTd}>{item.url}</td>
+      <td className={`${classNameTd} overflow-hidden`}>
         {item.isReqText ? (
-          <Code isInline>{item.reqBody}</Code>
+          <Code isInline>{item.reqBody.slice(0, MAX_BODY_CHARACTER)}</Code>
         ) : (
           <TagBinary
             ulid={ulid}
@@ -47,11 +51,11 @@ export default function TableRow(props: Props) {
         )}
       </td>
       <td className="px-4 py-2 whitespace-nowrap">
-        {item.statusCode.toString()}
+        <Center>{item.statusCode.toString()}</Center>
       </td>
-      <td className="px-4 py-2 whitespace-nowrap overflow-hidden max-w-0">
+      <td className={`${classNameTd} overflow-hidden`}>
         {item.isResText ? (
-          <Code isInline>{item.resBody}</Code>
+          <Code isInline>{item.resBody.slice(0, MAX_BODY_CHARACTER)}</Code>
         ) : (
           <TagBinary
             ulid={ulid}
@@ -60,32 +64,40 @@ export default function TableRow(props: Props) {
           />
         )}
       </td>
-      <td className="px-4 whitespace-nowrap text-center">
-        <ProgressIcon ulid={item.ulid} />
+      <td className={classNameTd}>
+        <Center>
+          <ProgressIcon ulid={item.ulid} />
+        </Center>
       </td>
-      <td className="px-4 whitespace-nowrap">
-        <ExecuteButton
-          onClick={(e) => {
-            e.stopPropagation();
-            onExecute();
-          }}
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+      <td className={classNameTd}>
+        <Center>
+          <ExecuteButton
+            onClick={(e) => {
+              e.stopPropagation();
+              onExecute();
+            }}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M9 5l8 8-8 8"
-            />
-          </svg>
-        </ExecuteButton>
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5l8 8-8 8"
+              />
+            </svg>
+          </ExecuteButton>
+        </Center>
       </td>
     </tr>
   );
+}
+
+function Center({ children }: { children: ReactNode }) {
+  return <div className="flex justify-center items-center">{children}</div>;
 }

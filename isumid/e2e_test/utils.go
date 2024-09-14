@@ -13,16 +13,23 @@ import (
 	"time"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
+	"github.com/kajikentaro/isucon-middleware/isumid/services"
 	"github.com/stretchr/testify/assert"
 )
 
-func FetchList(t *testing.T, portNum int) []models.RecordedTransaction {
-	requestUrl := GetUrlList(portNum).List
+func FetchAllTransactions(t *testing.T, portNum int) []models.RecordedTransaction {
+	res := SearchTransactions(t, portNum, "")
+	return res.Transactions
+}
+
+func SearchTransactions(t *testing.T, portNum int, query string) services.SearchResponse {
+	requestUrl := GetUrlList(portNum).Search
 	u, err := url.Parse(requestUrl)
 	assert.NoError(t, err)
 	q := u.Query()
 	q.Set("offset", "0")
 	q.Set("length", "20")
+	q.Set("query", query)
 	u.RawQuery = q.Encode()
 
 	res, err := http.Get(u.String())
@@ -34,10 +41,10 @@ func FetchList(t *testing.T, portNum int) []models.RecordedTransaction {
 	responseBody, err := io.ReadAll(res.Body)
 	assert.NoError(t, err)
 
-	recordedTransactions := []models.RecordedTransaction{}
-	err = json.Unmarshal(responseBody, &recordedTransactions)
+	var searchResponse services.SearchResponse
+	err = json.Unmarshal(responseBody, &searchResponse)
 	assert.NoError(t, err)
-	return recordedTransactions
+	return searchResponse
 }
 
 func StartServer(srv *http.Server) {
@@ -83,9 +90,8 @@ type UrlList struct {
 	ResBody           string
 	Remove            string
 	RemoveAll         string
-	TotalTransactions string
 	ReproducesResBody string
-	List              string
+	Search            string
 	Reproduce         string
 
 	UrlPrefix string
@@ -102,9 +108,8 @@ func GetUrlList(portNum int) UrlList {
 		ResBody:           prefix + "/res-body/",
 		Remove:            prefix + "/remove/",
 		RemoveAll:         prefix + "/remove-all",
-		TotalTransactions: prefix + "/total-transactions",
 		ReproducesResBody: prefix + "/reproduces-res-body/",
-		List:              prefix + "/list",
+		Search:            prefix + "/search",
 		Reproduce:         prefix + "/reproduce/",
 		UrlPrefix:         prefix,
 		UrlOrigin:         fmt.Sprintf("http://localhost:%d", portNum),

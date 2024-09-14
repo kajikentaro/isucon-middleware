@@ -8,8 +8,12 @@ export function getReproduceUrl(ulid: string) {
   return `${ENDPOINT_URL}isumid/reproduce/${ulid}`;
 }
 
-export function getFetchListUrl(offset: number, length: number) {
-  return `${ENDPOINT_URL}isumid/list?offset=${offset}&length=${length}`;
+export function getSearchUrl(
+  offset: number,
+  length: number,
+  query: string = ""
+) {
+  return `${ENDPOINT_URL}isumid/search?offset=${offset}&length=${length}&query=${query}`;
 }
 
 export type BodyType = "req-body" | "res-body" | "reproduced-res-body";
@@ -41,8 +45,4 @@ export function getRemoveAllURL() {
 
 export function getRemoveURL(ulid: string) {
   return `${ENDPOINT_URL}isumid/remove/${ulid}`;
-}
-
-export function getTotalTransactionsURL() {
-  return `${ENDPOINT_URL}isumid/total-transactions`;
 }

@@ -1,20 +1,18 @@
 "use client";
-
-import { useCurrentPageNum } from "@/hooks/use-current-page-num";
-import { useFetchRecordedTransactions } from "@/hooks/use-fetch-recorded-transactions";
-import { useFetchTotalTransactions } from "@/hooks/use-total-transactions";
+import { fetchTransactions } from "@/actions/fetch-transactions";
+import { useAppDispatch } from "@/store";
 import { getRemoveAllURL } from "@/utils/get-url";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CiTrash } from "react-icons/ci";
 
 export default function RemoveAllButton() {
   const [isRemoving, setIsRemoving] = useState(false);
-  const { fetchTransactions } = useFetchRecordedTransactions();
-  const { fetchTotalTransactions } = useFetchTotalTransactions();
-  const currentPageNum = useCurrentPageNum();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const className =
-    "border py-1 px-2 rounded flex items-center w-36 justify-center gap-1 text-red-500 border-red-500";
+    "border p-2 rounded flex items-center w-36 justify-center gap-1 text-red-500 border-red-500";
 
   const handleClick = async () => {
     const shouldProceed = confirm(
@@ -28,8 +26,8 @@ export default function RemoveAllButton() {
     const res = await fetch(getRemoveAllURL(), { method: "POST" });
     setIsRemoving(false);
     if (res.status === 200) {
-      await fetchTransactions(currentPageNum);
-      await fetchTotalTransactions();
+      router.replace("/");
+      dispatch(fetchTransactions(1, ""));
     }
   };
 

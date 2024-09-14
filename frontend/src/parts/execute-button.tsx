@@ -6,7 +6,7 @@ interface Props {
 export function ExecuteButton({ children, onClick }: Props) {
   return (
     <button
-      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-2 rounded-full block m-auto"
+      className="p-2 rounded-full flex items-center text-white bg-blue-500 hover:bg-blue-700 font-bold"
       onClick={onClick}
     >
       {children}
