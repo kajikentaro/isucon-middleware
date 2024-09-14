@@ -1,3 +1,4 @@
+import { MAX_ROW_LENGTH } from "@/constants";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   ExecutionProgressMap,
@@ -11,8 +12,6 @@ import {
 import { setSelectedUlids } from "@/store/ui/selected-ulids";
 import { RecordedTransaction } from "@/types";
 import { getFetchListUrl } from "@/utils/get-url";
-
-const MAX_ROW_LENGTH = 100;
 
 export function useFetchRecordedTransactions() {
   const dispatch = useAppDispatch();
