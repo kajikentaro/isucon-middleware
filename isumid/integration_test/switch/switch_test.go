@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid"
-	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
+	utils "github.com/kajikentaro/isucon-middleware/isumid/integration_test"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/stretchr/testify/assert"

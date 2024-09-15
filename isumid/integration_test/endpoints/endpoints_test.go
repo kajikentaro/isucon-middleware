@@ -13,10 +13,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid"
-	utils "github.com/kajikentaro/isucon-middleware/isumid/e2e_test"
+	utils "github.com/kajikentaro/isucon-middleware/isumid/integration_test"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
+	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,8 +29,9 @@ var URL_LIST = utils.GetUrlList(PORT_NUMBER)
 func TestMain(m *testing.M) {
 	fmt.Println("test dir:", OUTPUT_DIR)
 
+	settings := &settings.Setting{OutputDir: OUTPUT_DIR, RecordOnStart: true}
 	// prepare server
-	rec := isumid.New(&settings.Setting{OutputDir: OUTPUT_DIR, RecordOnStart: true})
+	rec := isumid.New(settings)
 	mux := http.NewServeMux()
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
 	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
@@ -37,6 +39,10 @@ func TestMain(m *testing.M) {
 	defer utils.StopServer(srv)
 
 	m.Run()
+
+	// clean up
+	storage := storages.New(*settings)
+	storage.RemoveDir()
 }
 
 func TestRecord(t *testing.T) {
@@ -203,4 +209,28 @@ func TestFetchTotalTransactions(t *testing.T) {
 	err = json.NewDecoder(res.Body).Decode(&actual)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, actual.TotalHit)
+}
+
+func TestSearchWithFilter(t *testing.T) {
+	// send request
+	{
+		url := URL_LIST.UrlOrigin + "/ABC"
+		res, err := http.Get(url)
+		assert.NoError(t, err)
+		io.Copy(io.Discard, res.Body)
+		defer res.Body.Close()
+	}
+
+	// send request
+	{
+		url := URL_LIST.UrlOrigin + "/DEF"
+		res, err := http.Get(url)
+		assert.NoError(t, err)
+		io.Copy(io.Discard, res.Body)
+		defer res.Body.Close()
+	}
+
+	actual := utils.SearchTransactions(t, PORT_NUMBER, "/ABC")
+	assert.Equal(t, 1, actual.TotalHit)
+	assert.Equal(t, "/ABC", actual.Transactions[0].Meta.Url)
 }
