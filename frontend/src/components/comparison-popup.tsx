@@ -159,15 +159,15 @@ function Request(props: TransactionProps) {
     <div className="p-4 rounded-md">
       <h3 className="text-lg font-semibold my-2"></h3>
       <p>Request Header:</p>
-      <Code>{stringifyHeader(header)}</Code>
+      <Code className="my-2">{stringifyHeader(header)}</Code>
       <p>Request Body:</p>
       {isText ? (
-        <Code>{body}</Code>
+        <Code className="my-2">{body}</Code>
       ) : (
         <TagBinary
           ulid={ulid}
           type="req-body"
-          className="mt-2"
+          className="my-2"
           contentLength={contentLength}
         />
       )}
@@ -189,17 +189,17 @@ function Response(props: {
     <div className="w-1/2 p-4 rounded-md mb-4">
       {title}
       <p>Response Header:</p>
-      <Code>{stringifyHeader(header)}</Code>
+      <Code className="my-2">{stringifyHeader(header)}</Code>
       <p>Status Code:</p>
-      <Code>{statusCode}</Code>
+      <Code className="my-2">{statusCode}</Code>
       <p>Response Body:</p>
       {isText ? (
-        <Code>{body}</Code>
+        <Code className="my-2">{body}</Code>
       ) : (
         <TagBinary
           ulid={ulid}
           type={type}
-          className="mt-2"
+          className="my-2"
           contentLength={contentLength}
         />
       )}

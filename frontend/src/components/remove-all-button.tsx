@@ -1,5 +1,6 @@
 "use client";
 import { fetchTransactions } from "@/actions/fetch-transactions";
+import { ENV } from "@/constants";
 import { useAppDispatch } from "@/store";
 import { getRemoveAllURL } from "@/utils/get-url";
 import { useRouter } from "next/navigation";
@@ -26,7 +27,7 @@ export default function RemoveAllButton() {
     const res = await fetch(getRemoveAllURL(), { method: "POST" });
     setIsRemoving(false);
     if (res.status === 200) {
-      router.replace("/");
+      router.replace(ENV.TOP_PAGE_PATH);
       dispatch(fetchTransactions(1, ""));
     }
   };

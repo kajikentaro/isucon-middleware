@@ -28,9 +28,18 @@ function normalizeContentLength(contentLength: number): string {
   }
 }
 
-export function TagBinary({ type, ulid, className, contentLength }: Props) {
+export function TagBinary({
+  type,
+  ulid,
+  className = "",
+  contentLength,
+}: Props) {
   if (contentLength === 0) {
-    return <TagEmpty />;
+    return (
+      <span className={`${className} inline-block`}>
+        <TagEmpty />
+      </span>
+    );
   }
 
   return (
@@ -39,7 +48,7 @@ export function TagBinary({ type, ulid, className, contentLength }: Props) {
       onClick={(e) => {
         e.stopPropagation();
       }}
-      className={`inline-flex ${className ? className : ""}`}
+      className={`inline-flex ${className}`}
       prefetch={false}
     >
       <span className="bg-green-500 text-white py-1 px-2 text-xs rounded-full block w-fit">

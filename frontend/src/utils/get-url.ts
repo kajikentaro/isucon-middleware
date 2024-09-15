@@ -1,8 +1,6 @@
-const ENDPOINT_URL = process.env.NEXT_PUBLIC_ENDPOINT_URL;
+import { ENV } from "@/constants";
 
-if (!ENDPOINT_URL) {
-  throw new Error("env ENDPOINT_URL is not defined");
-}
+const ENDPOINT_URL = ENV.ENDPOINT_URL;
 
 export function getReproduceUrl(ulid: string) {
   return `${ENDPOINT_URL}isumid/reproduce/${ulid}`;
