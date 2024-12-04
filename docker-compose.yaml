@@ -10,6 +10,8 @@ services:
       - type: bind
         source: .
         target: /work
+    ports:
+      - "8080:8080"
     profiles:
       - dev
   dev_front:
@@ -21,5 +23,7 @@ services:
       - type: bind
         source: .
         target: /work
+    ports:
+      - "3000:3000"
     profiles:
       - dev
