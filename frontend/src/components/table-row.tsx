@@ -24,7 +24,7 @@ export default function TableRow(props: Props) {
   const onExecute = useExecute(item.ulid);
   const openPopup = useOpenPopup(item.ulid);
 
-  const classNameTd = "px-2 py-1 whitespace-nowrap max-w-0";
+  const classNameTd = "px-2 py-1 whitespace-nowrap max-w-0 overflow-hidden";
 
   return (
     <tr className="border-b hover:bg-gray-100" onClick={openPopup}>
@@ -39,7 +39,7 @@ export default function TableRow(props: Props) {
       </td>
       <td className={classNameTd}>{item.method}</td>
       <td className={classNameTd}>{item.url}</td>
-      <td className={`${classNameTd} overflow-hidden`}>
+      <td className={classNameTd}>
         {item.isReqText ? (
           <Code isInline>{item.reqBody.slice(0, MAX_BODY_CHARACTER)}</Code>
         ) : (
@@ -53,7 +53,7 @@ export default function TableRow(props: Props) {
       <td className="px-4 py-2 whitespace-nowrap">
         <Center>{item.statusCode.toString()}</Center>
       </td>
-      <td className={`${classNameTd} overflow-hidden`}>
+      <td className={classNameTd}>
         {item.isResText ? (
           <Code isInline>{item.resBody.slice(0, MAX_BODY_CHARACTER)}</Code>
         ) : (
