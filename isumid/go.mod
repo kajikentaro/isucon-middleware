@@ -4,7 +4,9 @@ go 1.21.0
 
 require (
 	github.com/google/uuid v1.4.0
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/labstack/echo/v4 v4.11.3
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/oklog/ulid v1.3.1
 	github.com/stretchr/testify v1.8.4
 	github.com/vmihailenco/msgpack/v5 v5.4.1

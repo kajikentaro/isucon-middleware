@@ -53,7 +53,10 @@ func New(options *settings.Setting) *Recorder {
 	}
 
 	// DI
-	storage := storages.New(*options)
+	storage, err := storages.New(*options)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to create a sqlite3 database", err.Error())
+	}
 	if err := storage.CreateDir(); err != nil {
 		fmt.Fprintln(os.Stderr, "failed to create a directory", err.Error())
 		os.Exit(1)

@@ -175,7 +175,7 @@ func (s Service) Remove(ulid string) error {
 }
 
 func (s Service) RemoveAll() error {
-	err := s.storage.RemoveDir()
+	err := s.storage.RemoveAll()
 	if err != nil {
 		return err
 	}

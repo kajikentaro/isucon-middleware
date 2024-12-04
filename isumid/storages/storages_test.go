@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -36,27 +34,27 @@ func TestSave(t *testing.T) {
 
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
 	// test start
-	err := storage.Save(saveData)
+	err = storage.Save(saveData)
 	assert.NoError(t, err)
 }
 
-func getUlid(t *testing.T) string {
-	fileList, err := os.ReadDir(OUTPUT_DIR)
+func getUlid(t *testing.T, s Storage) string {
+	metaList, err := s.FetchMetaList(0, 1)
 	assert.NoError(t, err)
-
-	parts := strings.Split(fileList[0].Name(), ".")
-	return parts[0]
+	return metaList[0].Ulid
 }
 
 func TestFetchMeta(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
-	ulid := getUlid(t)
+	ulid := getUlid(t, storage)
 	actual, err := storage.FetchMeta(ulid)
 	assert.NoError(t, err)
 
@@ -78,7 +76,8 @@ func TestFetchMeta(t *testing.T) {
 func TestFetchMetaList(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
 	actual, err := storage.FetchMetaList(0, 1)
 	assert.NoError(t, err)
@@ -103,9 +102,10 @@ func TestFetchMetaList(t *testing.T) {
 func TestFetchReqBody(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
-	ulid := getUlid(t)
+	ulid := getUlid(t, storage)
 	actual, err := storage.FetchReqBody(ulid)
 	assert.NoError(t, err)
 
@@ -116,9 +116,10 @@ func TestFetchReqBody(t *testing.T) {
 func TestFetchResBody(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
-	ulid := getUlid(t)
+	ulid := getUlid(t, storage)
 	actual, err := storage.FetchResBody(ulid)
 	assert.NoError(t, err)
 
@@ -129,10 +130,11 @@ func TestFetchResBody(t *testing.T) {
 func TestSaveReproduced(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
-	ulid := getUlid(t)
-	err := storage.SaveReproduced(
+	ulid := getUlid(t, storage)
+	err = storage.SaveReproduced(
 		ulid,
 		[]byte("Test Reproduced Body"),
 		map[string][]string{"Content-Type": {"text/plain"}},
@@ -143,9 +145,10 @@ func TestSaveReproduced(t *testing.T) {
 func TestFetchReproducedHeader(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
-	ulid := getUlid(t)
+	ulid := getUlid(t, storage)
 	actual, err := storage.FetchReproducedHeader(ulid)
 	assert.NoError(t, err)
 
@@ -156,9 +159,10 @@ func TestFetchReproducedHeader(t *testing.T) {
 func TestFetchReproducedBody(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
-	ulid := getUlid(t)
+	ulid := getUlid(t, storage)
 	actual, err := storage.FetchReproducedBody(ulid)
 	assert.NoError(t, err)
 
@@ -206,7 +210,8 @@ func TestIsText(t *testing.T) {
 
 func TestFetchTotalTransactions(t *testing.T) {
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
 	metaList, err := storage.FetchMetaList(0, 100)
 	assert.NoError(t, err)
@@ -221,7 +226,8 @@ func TestFetchTotalTransactions(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := New(setting)
+	storage, err := New(setting)
+	assert.NoError(t, err)
 
 	metaList, err := storage.FetchMetaList(0, 100)
 	assert.NoError(t, err)
@@ -234,5 +240,5 @@ func TestRemove(t *testing.T) {
 	assert.NoError(t, err)
 
 	expected := metaList[1:]
-	assert.True(t, reflect.DeepEqual(actual, expected))
+	assert.Exactly(t, expected, actual)
 }

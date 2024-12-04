@@ -41,8 +41,8 @@ func TestMain(m *testing.M) {
 	m.Run()
 
 	// clean up
-	storage := storages.New(*settings)
-	storage.RemoveDir()
+	storage, _ := storages.New(*settings)
+	storage.RemoveAll()
 }
 
 func TestRecord(t *testing.T) {

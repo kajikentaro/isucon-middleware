@@ -28,7 +28,8 @@ func TestSave(t *testing.T) {
 
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := storages.New(setting)
+	storage, err := storages.New(setting)
+	assert.NoError(t, err)
 
 	// test start
 	for i := 0; i < 20; i++ {
@@ -40,7 +41,8 @@ func TestSave(t *testing.T) {
 func TestFetchMetaList(t *testing.T) {
 	// prepare storage
 	setting := settings.Setting{OutputDir: OUTPUT_DIR}
-	storage := storages.New(setting)
+	storage, err := storages.New(setting)
+	assert.NoError(t, err)
 
 	actual, err := storage.FetchMetaList(0, 2)
 	assert.NoError(t, err)

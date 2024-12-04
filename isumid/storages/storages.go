@@ -2,26 +2,67 @@ package storages
 
 import (
 	"fmt"
-	"io/fs"
 	"math/rand"
 	"mime"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/oklog/ulid"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Storage struct {
-	settings.Setting
+	outputDir string
+	db        *sqlx.DB
 }
 
-func New(setting settings.Setting) Storage {
-	return Storage{Setting: setting}
+func New(setting settings.Setting) (Storage, error) {
+	outputDir := path.Join(setting.OutputDir, "body")
+
+	err := os.MkdirAll(outputDir, 0777)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+	if err != nil {
+		return Storage{}, nil
+	}
+
+	db, err := sqlx.Open("sqlite3", filepath.Join(setting.OutputDir, "isumid.sqlite3"))
+	if err != nil {
+		return Storage{}, err
+	}
+
+	query := `
+    CREATE TABLE IF NOT EXISTS metadata (
+        method TEXT,
+        url TEXT,
+        reqHeader BLOB,
+        statusCode INTEGER,
+        resHeader BLOB,
+        isReqText BOOLEAN,
+        isResText BOOLEAN,
+        ulid TEXT PRIMARY KEY,
+        reqLength INTEGER,
+        resLength INTEGER
+    );
+	`
+	_, err = db.Exec(query)
+	if err != nil {
+		return Storage{}, fmt.Errorf("failed to create metadata table: %w", err)
+	}
+
+	return Storage{outputDir: outputDir, db: db}, nil
+}
+
+func (s Storage) Close() error {
+	return s.db.Close()
 }
 
 func IsText(header map[string][]string, body []byte) bool {
@@ -56,21 +97,83 @@ func genUlidStr() string {
 	return id.String()
 }
 
-func (s Storage) Save(data models.RecordedDataInput) error {
-	err := os.MkdirAll(s.OutputDir, 0777)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	}
+func serializeMap(header map[string][]string) ([]byte, error) {
+	return msgpack.Marshal(header)
+}
 
+func deserializeMap(data []byte) (map[string][]string, error) {
+	var header map[string][]string
+	if err := msgpack.Unmarshal(data, &header); err != nil {
+		return nil, err
+	}
+	return header, nil
+}
+
+type serializedMeta struct {
+	Method     string `db:"method"`
+	Url        string `db:"url"`
+	ReqHeader  []byte `db:"reqHeader"`
+	StatusCode int    `db:"statusCode"`
+	ResHeader  []byte `db:"resHeader"`
+	IsReqText  bool   `db:"isReqText"`
+	IsResText  bool   `db:"isResText"`
+	ReqLength  int    `db:"reqLength"`
+	ResLength  int    `db:"resLength"`
+	Ulid       string `db:"ulid"`
+}
+
+func serializeMeta(meta models.Meta) (serializedMeta, error) {
+	reqHeader, err := serializeMap(meta.ReqHeader)
+	if err != nil {
+		return serializedMeta{}, err
+	}
+	resHeader, err := serializeMap(meta.ResHeader)
+	if err != nil {
+		return serializedMeta{}, err
+	}
+	return serializedMeta{
+		Method:     meta.Method,
+		Url:        meta.Url,
+		ReqHeader:  reqHeader,
+		StatusCode: meta.StatusCode,
+		ResHeader:  resHeader,
+		IsReqText:  meta.IsReqText,
+		IsResText:  meta.IsResText,
+		ReqLength:  meta.ReqLength,
+		ResLength:  meta.ResLength,
+		Ulid:       meta.Ulid,
+	}, nil
+}
+
+func deserializeMeta(data serializedMeta) (models.Meta, error) {
+	reqHeader, err := deserializeMap(data.ReqHeader)
+	if err != nil {
+		return models.Meta{}, err
+	}
+	resHeader, err := deserializeMap(data.ResHeader)
+	if err != nil {
+		return models.Meta{}, err
+	}
+	return models.Meta{
+		Method:     data.Method,
+		Url:        data.Url,
+		ReqHeader:  reqHeader,
+		StatusCode: data.StatusCode,
+		ResHeader:  resHeader,
+		IsReqText:  data.IsReqText,
+		IsResText:  data.IsResText,
+		Ulid:       data.Ulid,
+		ReqLength:  data.ReqLength,
+		ResLength:  data.ResLength,
+	}, nil
+}
+
+func (s Storage) Save(data models.RecordedDataInput) error {
 	// generate ulid
 	ulidStr := genUlidStr()
 
 	// save metadata
 	{
-		path := filepath.Join(s.OutputDir, ulidStr+".meta")
-		if err != nil {
-			return err
-		}
 		meta := models.Meta{
 			Method:     data.Method,
 			Url:        data.Url,
@@ -83,23 +186,23 @@ func (s Storage) Save(data models.RecordedDataInput) error {
 			ReqLength:  len(data.ReqBody),
 			ResLength:  len(data.ResBody),
 		}
-		data, err := msgpack.Marshal(meta)
+		query := `
+			INSERT INTO metadata (method, url, reqHeader, statusCode, resHeader, isReqText, isResText, ulid, reqLength, resLength)
+			VALUES (:method, :url, :reqHeader, :statusCode, :resHeader, :isReqText, :isResText, :ulid, :reqLength, :resLength);
+		`
+		serialized, err := serializeMeta(meta)
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(path, data, 0666)
-		if err != nil {
+		if _, err := s.db.NamedExec(query, serialized); err != nil {
 			return err
 		}
 	}
 
 	// save request body data
 	{
-		path := filepath.Join(s.OutputDir, ulidStr+".req.body")
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(path, data.ReqBody, 0666)
+		path := filepath.Join(s.outputDir, ulidStr+".req.body")
+		err := os.WriteFile(path, data.ReqBody, 0666)
 		if err != nil {
 			return err
 		}
@@ -107,11 +210,8 @@ func (s Storage) Save(data models.RecordedDataInput) error {
 
 	// save response body data
 	{
-		path := filepath.Join(s.OutputDir, ulidStr+".res.body")
-		if err != nil {
-			return err
-		}
-		err = os.WriteFile(path, data.ResBody, 0666)
+		path := filepath.Join(s.outputDir, ulidStr+".res.body")
+		err := os.WriteFile(path, data.ResBody, 0666)
 		if err != nil {
 			return err
 		}
@@ -121,13 +221,14 @@ func (s Storage) Save(data models.RecordedDataInput) error {
 }
 
 func (s Storage) FetchMeta(ulid string) (models.Meta, error) {
-	data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".meta"))
+	var serializedMeta serializedMeta
+	query := `SELECT * FROM metadata WHERE ulid = ?`
+	err := s.db.Get(&serializedMeta, query, ulid)
 	if err != nil {
 		return models.Meta{}, err
 	}
 
-	var meta models.Meta
-	err = msgpack.Unmarshal(data, &meta)
+	meta, err := deserializeMeta(serializedMeta)
 	if err != nil {
 		return models.Meta{}, err
 	}
@@ -136,50 +237,27 @@ func (s Storage) FetchMeta(ulid string) (models.Meta, error) {
 }
 
 func (s Storage) FetchMetaList(offset, length int) ([]models.Meta, error) {
-	fileList, err := os.ReadDir(s.OutputDir)
+	query := `SELECT * FROM metadata LIMIT ? OFFSET ?`
+	var serializedMetaList []serializedMeta
+	err := s.db.Select(&serializedMetaList, query, length, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	metaList := []fs.DirEntry{}
-	for _, file := range fileList {
-		if file.IsDir() {
-			continue
+	metaList := []models.Meta{}
+	for _, m := range serializedMetaList {
+		meta, err := deserializeMeta(m)
+		if err != nil {
+			return nil, err
 		}
-		if filepath.Ext(file.Name()) != ".meta" {
-			continue
-		}
-		metaList = append(metaList, file)
+		metaList = append(metaList, meta)
 	}
 
-	res := []models.Meta{}
-	for idx, file := range metaList {
-		if idx+1 <= offset {
-			continue
-		}
-		if offset+length < idx+1 {
-			break
-		}
-
-		data, err := os.ReadFile(filepath.Join(s.OutputDir, file.Name()))
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			continue
-		}
-
-		var meta models.Meta
-		err = msgpack.Unmarshal(data, &meta)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			continue
-		}
-		res = append(res, meta)
-	}
-	return res, nil
+	return metaList, nil
 }
 
 func (s Storage) fetchFile(fileName string) ([]byte, error) {
-	body, err := os.ReadFile(filepath.Join(s.OutputDir, fileName))
+	body, err := os.ReadFile(filepath.Join(s.outputDir, fileName))
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +277,7 @@ func (s Storage) FetchReproducedBody(ulid string) ([]byte, error) {
 }
 
 func (s Storage) FetchReproducedHeader(ulid string) (map[string][]string, error) {
-	data, err := os.ReadFile(filepath.Join(s.OutputDir, ulid+".reproduced.header"))
+	data, err := os.ReadFile(filepath.Join(s.outputDir, ulid+".reproduced.header"))
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +293,7 @@ func (s Storage) FetchReproducedHeader(ulid string) (map[string][]string, error)
 
 func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]string) error {
 	{
-		path := filepath.Join(s.OutputDir, ulid+".reproduced.header")
+		path := filepath.Join(s.outputDir, ulid+".reproduced.header")
 		data, err := msgpack.Marshal(header)
 		if err != nil {
 			return err
@@ -226,7 +304,7 @@ func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]st
 		}
 	}
 	{
-		path := filepath.Join(s.OutputDir, ulid+".reproduced.body")
+		path := filepath.Join(s.outputDir, ulid+".reproduced.body")
 		err := os.WriteFile(path, body, 0666)
 		if err != nil {
 			return err
@@ -236,15 +314,26 @@ func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]st
 }
 
 func (s Storage) CreateDir() error {
-	return os.MkdirAll(s.OutputDir, 0777)
+	return os.MkdirAll(s.outputDir, 0777)
 }
 
-func (s Storage) RemoveDir() error {
-	return os.RemoveAll(s.OutputDir)
+func (s Storage) RemoveAll() error {
+	query := `DELETE FROM metadata`
+	_, err := s.db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return os.RemoveAll(s.outputDir)
 }
 
 func (s Storage) Remove(ulid string) error {
-	fileList, err := filepath.Glob(filepath.Join(s.OutputDir, ulid+"*"))
+	query := `DELETE FROM metadata WHERE ulid = ?`
+	_, err := s.db.Exec(query, ulid)
+	if err != nil {
+		return err
+	}
+
+	fileList, err := filepath.Glob(filepath.Join(s.outputDir, ulid+"*"))
 	if err != nil {
 		return err
 	}
@@ -260,10 +349,11 @@ func (s Storage) Remove(ulid string) error {
 }
 
 func (s Storage) FetchTotalTransactions() (int, error) {
-	fileList, err := filepath.Glob(filepath.Join(s.OutputDir, "*.meta"))
+	var count int
+	query := `SELECT COUNT(*) FROM metadata`
+	err := s.db.Get(&count, query)
 	if err != nil {
 		return 0, err
 	}
-
-	return len(fileList), nil
+	return count, nil
 }

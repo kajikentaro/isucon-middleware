@@ -28,6 +28,7 @@ func main() {
 	rec := isumid.New(nil)
 
 	http.Handle("/", rec.Middleware(http.HandlerFunc(handler)))
+	fmt.Println("server started at :8080")
 	err := http.ListenAndServe(":8080", nil)
 	log.Fatal(err)
 }
