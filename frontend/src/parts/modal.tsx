@@ -1,3 +1,4 @@
+import { joinClassName } from "@/utils/join-class-name";
 import { ReactNode, useEffect } from "react";
 
 interface Props {
@@ -5,6 +6,7 @@ interface Props {
   isVisible: boolean;
   closePopup: () => void;
   title: string;
+  isFullWidth?: boolean;
 }
 
 export default function Modal(props: Props) {
@@ -15,7 +17,7 @@ export default function Modal(props: Props) {
   return <ModalContent {...props} />;
 }
 
-function ModalContent({ children, closePopup, title }: Props) {
+function ModalContent({ children, closePopup, title, isFullWidth }: Props) {
   const closePopupOnEscapePressed = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       closePopup();
@@ -35,9 +37,11 @@ function ModalContent({ children, closePopup, title }: Props) {
       className="fixed z-50 top-0 left-0 w-full h-full flex justify-center items-start bg-black bg-opacity-50 px-10 py-20"
       onClick={closePopup}
     >
-      <div className="relative h-full">
+      <div
+        className={joinClassName("relative h-full", isFullWidth && "w-full")}
+      >
         <div
-          className="bg-white p-6 rounded-md max-w-full max-h-full overflow-y-auto"
+          className="bg-white p-6 rounded-md max-h-full overflow-y-auto"
           onClick={(e) => {
             e.stopPropagation();
           }}

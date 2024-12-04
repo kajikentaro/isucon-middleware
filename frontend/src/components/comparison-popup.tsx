@@ -27,7 +27,12 @@ export default function ComparisonPopup() {
   const { isVisible } = useAppSelector(selectComparisonPopup);
 
   return (
-    <Modal isVisible={isVisible} closePopup={closePopup} title={"Comparison"}>
+    <Modal
+      isVisible={isVisible}
+      closePopup={closePopup}
+      title={"Comparison"}
+      isFullWidth
+    >
       <ModalContents />
     </Modal>
   );
@@ -42,12 +47,15 @@ function ModalContents() {
   return (
     <div>
       <Request
-        statusCode={recordedTransaction.statusCode}
-        ulid={popupState.ulid}
-        body={recordedTransaction.reqBody}
-        header={recordedTransaction.reqHeader}
-        isText={recordedTransaction.isReqText}
-        contentLength={recordedTransaction.reqLength}
+        transaction={{
+          statusCode: recordedTransaction.statusCode,
+          ulid: popupState.ulid,
+          body: recordedTransaction.reqBody,
+          header: recordedTransaction.reqHeader,
+          isText: recordedTransaction.isReqText,
+          contentLength: recordedTransaction.reqLength,
+        }}
+        url={recordedTransaction.url}
       />
       <span className="mb-4 h-0.5 bg-gray-300 block" />
       <div className="flex justify-center">
@@ -153,11 +161,16 @@ interface TransactionProps {
   contentLength: number;
 }
 
-function Request(props: TransactionProps) {
-  const { header, isText, body, ulid, contentLength } = props;
+function Request(props: { transaction: TransactionProps; url: string }) {
+  const {
+    transaction: { header, isText, body, ulid, contentLength },
+    url,
+  } = props;
   return (
     <div className="p-4 rounded-md">
       <h3 className="text-lg font-semibold my-2"></h3>
+      <p>URL</p>
+      <Code className="my-2">{url}</Code>
       <p>Request Header:</p>
       <Code className="my-2">{stringifyHeader(header)}</Code>
       <p>Request Body:</p>
