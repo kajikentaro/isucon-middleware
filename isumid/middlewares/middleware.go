@@ -123,7 +123,7 @@ func (s *Middleware) Recorder(next http.Handler) http.Handler {
 		}
 		err = s.storage.Save(saveData)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to save recorded data")
+			fmt.Fprintf(os.Stderr, "failed to save recorded data: %s\n", err)
 			return
 		}
 	})

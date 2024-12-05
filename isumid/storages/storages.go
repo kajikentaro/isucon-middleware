@@ -13,9 +13,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/oklog/ulid"
 	"github.com/vmihailenco/msgpack/v5"
+	_ "modernc.org/sqlite"
 )
 
 type Storage struct {
@@ -34,7 +34,7 @@ func New(setting settings.Setting) (Storage, error) {
 		return Storage{}, nil
 	}
 
-	db, err := sqlx.Open("sqlite3", filepath.Join(setting.OutputDir, "isumid.sqlite3"))
+	db, err := sqlx.Open("sqlite", filepath.Join(setting.OutputDir, "isumid.sqlite"))
 	if err != nil {
 		return Storage{}, err
 	}
