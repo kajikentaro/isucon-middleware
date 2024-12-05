@@ -1,6 +1,8 @@
 module github.com/kajikentaro/isucon-middleware/isumid
 
-go 1.21.0
+go 1.22
+
+toolchain go1.23.2
 
 require (
 	github.com/google/uuid v1.4.0
@@ -8,8 +10,9 @@ require (
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/oklog/ulid v1.3.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
+	go.uber.org/mock v0.5.0
 )
 
 require (
