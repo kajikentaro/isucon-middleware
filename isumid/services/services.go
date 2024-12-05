@@ -2,19 +2,17 @@ package services
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"strings"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
-	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
 type Service struct {
-	storage storages.Storage
+	storage StorageInterface
 }
 
-func New(storage storages.Storage) Service {
+func New(storage StorageInterface) Service {
 	return Service{storage: storage}
 }
 
@@ -29,26 +27,16 @@ func (s Service) Search(query string, offset, length int) (*SearchResponse, erro
 		return s.fetchList(offset, length)
 	}
 
-	MetaList, err := s.storage.FetchMetaList(0, math.MaxInt)
+	query = strings.ReplaceAll(query, "*", "%")
+
+	metaList, totalHit, err := s.storage.SearchMetaList(query, offset, length)
 	if err != nil {
 		return nil, err
 	}
 
-	totalHit := 0
 	transactions := []models.RecordedTransaction{}
-	for _, meta := range MetaList {
+	for _, meta := range metaList {
 		transaction := models.RecordedTransaction{Meta: meta}
-		if !strings.Contains(meta.Url, query) {
-			continue
-		}
-
-		totalHit++
-		if totalHit <= offset {
-			continue
-		}
-		if offset+length < totalHit {
-			continue
-		}
 
 		if meta.IsReqText {
 			body, err := s.storage.FetchReqBody(meta.Ulid)

@@ -256,6 +256,37 @@ func (s Storage) FetchMetaList(offset, length int) ([]models.Meta, error) {
 	return metaList, nil
 }
 
+func (s Storage) SearchMetaList(urlQuery string, offset int, length int) ([]models.Meta, int, error) {
+	metaList := []models.Meta{}
+	{
+		query := `SELECT * FROM metadata WHERE url LIKE ? LIMIT ? OFFSET ?`
+		var serializedMetaList []serializedMeta
+		err := s.db.Select(&serializedMetaList, query, urlQuery, length, offset)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		for _, m := range serializedMetaList {
+			meta, err := deserializeMeta(m)
+			if err != nil {
+				return nil, 0, err
+			}
+			metaList = append(metaList, meta)
+		}
+	}
+
+	var totalHit int
+	{
+		query := `SELECT COUNT(*) FROM metadata WHERE url LIKE ?`
+		err := s.db.Get(&totalHit, query, urlQuery)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
+	return metaList, totalHit, nil
+}
+
 func (s Storage) fetchFile(fileName string) ([]byte, error) {
 	body, err := os.ReadFile(filepath.Join(s.outputDir, fileName))
 	if err != nil {
