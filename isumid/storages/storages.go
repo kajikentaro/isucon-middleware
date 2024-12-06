@@ -21,6 +21,7 @@ import (
 type Storage struct {
 	outputDir string
 	db        *sqlx.DB
+	bulk      *bulk
 }
 
 func New(setting settings.Setting) (Storage, error) {
@@ -28,10 +29,7 @@ func New(setting settings.Setting) (Storage, error) {
 
 	err := os.MkdirAll(outputDir, 0777)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-	}
-	if err != nil {
-		return Storage{}, nil
+		return Storage{}, err
 	}
 
 	db, err := sqlx.Open("sqlite", filepath.Join(setting.OutputDir, "isumid.sqlite"))
@@ -39,26 +37,60 @@ func New(setting settings.Setting) (Storage, error) {
 		return Storage{}, err
 	}
 
-	query := `
-    CREATE TABLE IF NOT EXISTS metadata (
-        method TEXT,
-        url TEXT,
-        reqHeader BLOB,
-        statusCode INTEGER,
-        resHeader BLOB,
-        isReqText BOOLEAN,
-        isResText BOOLEAN,
-        ulid TEXT PRIMARY KEY,
-        reqLength INTEGER,
-        resLength INTEGER
-    );
-	`
-	_, err = db.Exec(query)
+	err = initDB(db)
 	if err != nil {
 		return Storage{}, fmt.Errorf("failed to create metadata table: %w", err)
 	}
 
-	return Storage{outputDir: outputDir, db: db}, nil
+	bulk := newBulk(func(i []interface{}) {
+		insertMetaBulk(db, i)
+	})
+
+	return Storage{outputDir: outputDir, db: db, bulk: bulk}, nil
+}
+
+func initDB(db *sqlx.DB) error {
+	db.SetMaxOpenConns(1)
+	db.SetConnMaxIdleTime(time.Minute)
+
+	query := `
+		PRAGMA journal_mode = WAL;
+		PRAGMA synchronous = NORMAL;
+		PRAGMA temp_store = MEMORY;
+		PRAGMA mmap_size = 30000000000; -- 30GB
+		PRAGMA busy_timeout = 5000;
+		PRAGMA automatic_index = true;
+		PRAGMA foreign_keys = ON;
+		PRAGMA analysis_limit = 1000;
+		PRAGMA trusted_schema = OFF;
+
+		CREATE TABLE IF NOT EXISTS metadata (
+			method TEXT,
+			url TEXT,
+			reqHeader BLOB,
+			statusCode INTEGER,
+			resHeader BLOB,
+			isReqText BOOLEAN,
+			isResText BOOLEAN,
+			ulid TEXT PRIMARY KEY,
+			reqLength INTEGER,
+			resLength INTEGER
+		);
+	`
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+	return nil
+}
+
+func insertMetaBulk(db *sqlx.DB, serializedMetaList []interface{}) {
+	query := `
+		INSERT INTO metadata (method, url, reqHeader, statusCode, resHeader, isReqText, isResText, ulid, reqLength, resLength)
+		VALUES (:method, :url, :reqHeader, :statusCode, :resHeader, :isReqText, :isResText, :ulid, :reqLength, :resLength);
+	`
+	if _, err := db.NamedExec(query, serializedMetaList); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to save meta data: %s\n", err)
+	}
 }
 
 func (s Storage) Close() error {
@@ -186,17 +218,12 @@ func (s Storage) Save(data models.RecordedDataInput) error {
 			ReqLength:  len(data.ReqBody),
 			ResLength:  len(data.ResBody),
 		}
-		query := `
-			INSERT INTO metadata (method, url, reqHeader, statusCode, resHeader, isReqText, isResText, ulid, reqLength, resLength)
-			VALUES (:method, :url, :reqHeader, :statusCode, :resHeader, :isReqText, :isResText, :ulid, :reqLength, :resLength);
-		`
+
 		serialized, err := serializeMeta(meta)
 		if err != nil {
 			return err
 		}
-		if _, err := s.db.NamedExec(query, serialized); err != nil {
-			return err
-		}
+		s.bulk.append(serialized)
 	}
 
 	// save request body data
