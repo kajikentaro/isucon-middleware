@@ -37,8 +37,7 @@ func New(setting settings.Setting) (Storage, error) {
 		return Storage{}, err
 	}
 
-	err = initDB(db)
-	if err != nil {
+	if err := initDB(db); err != nil {
 		return Storage{}, fmt.Errorf("failed to create metadata table: %w", err)
 	}
 
@@ -371,17 +370,25 @@ func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]st
 	return nil
 }
 
-func (s Storage) CreateDir() error {
+func (s Storage) createDir() error {
 	return os.MkdirAll(s.outputDir, 0777)
 }
 
 func (s Storage) RemoveAll() error {
 	query := `DELETE FROM metadata`
-	_, err := s.db.Exec(query)
-	if err != nil {
+	if _, err := s.db.Exec(query); err != nil {
 		return err
 	}
-	return os.RemoveAll(s.outputDir)
+
+	if err := os.RemoveAll(s.outputDir); err != nil {
+		return err
+	}
+
+	if err := s.createDir(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s Storage) Remove(ulid string) error {

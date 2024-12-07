@@ -168,10 +168,6 @@ func (s Service) RemoveAll() error {
 		return err
 	}
 
-	err = s.storage.CreateDir()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
