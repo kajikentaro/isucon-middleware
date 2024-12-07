@@ -7,8 +7,8 @@ Make it easy to debug Isucon!
 
 ## Features
 
-* Recording of requests and responses that reach the application.
-* Execution of any recorded request from the Web UI, and comparison of its result with the recorded response.
+- Recording of requests and responses that reach the application.
+- Execution of any recorded request from the Web UI, and comparison of its result with the recorded response.
 
 ## How to install
 
@@ -47,26 +47,26 @@ We can't use the wrapper which can be used in web framework such as `e.Use(echo.
 
 ## Settings
 
-The behavior of Isucon Middleware can be customized by passing configuration settings as arguments. 
+The behavior of Isucon Middleware can be customized by passing configuration settings as arguments.
 
 ```go
-	rec := isumid.New(&settings.Setting{
+	rec := isumid.New(&isumid.Setting{
 		OutputDir:     "/tmp/isumid",
 		RecordOnStart: true,
-		AutoStart: &settings.AutoSwitch{
+		AutoStart: &isumid.AutoSwitch{
 			TriggerEndpoint: "/initialize",
 			AfterSec:        1,
 		},
-		AutoStop: &settings.AutoSwitch{
+		AutoStop: &isumid.AutoSwitch{
 			TriggerEndpoint: "/initialize",
 			AfterSec:        75,
 		},
 	})
 ```
 
-* AutoStart  
+- AutoStart  
   If `TriggerEndpoint` is accessed, Isucon Middleware starts recording after `AfterSec` seconds have elapsed.
-* AutoStop  
+- AutoStop  
   If `TriggerEndpoint` is accessed, Isucon Middleware stops recording after `AfterSec` seconds have elapsed.
 
 ## How to use
@@ -79,7 +79,7 @@ Please note that settings of Nginx or other middlewares are configured correctly
 
 ### Directory structure
 
-* `/frontend`  
+- `/frontend`  
   Web UI built with Next.js. Please run `make build-front` after updating this directory to copy build file to `/isumid`
-* `/isumid`  
+- `/isumid`  
   Isucon Middleware built with Go.

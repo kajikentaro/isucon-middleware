@@ -13,6 +13,9 @@ import (
 	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 )
 
+type AutoSwitch = settings.AutoSwitch
+type Setting = settings.Setting
+
 type Recorder struct {
 	// Middleware func(http.Handler) http.Handler
 	handler    handlers.Handler
@@ -36,8 +39,8 @@ func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 	return mux
 }
 
-func New(options *settings.Setting) *Recorder {
-	defaultSetting := settings.Setting{
+func New(options *Setting) *Recorder {
+	defaultSetting := Setting{
 		OutputDir:     filepath.Join(os.TempDir(), "isumid"),
 		RecordOnStart: false,
 		AutoStop:      nil,
