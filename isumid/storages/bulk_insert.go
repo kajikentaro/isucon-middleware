@@ -25,6 +25,12 @@ func newBulk(execFunc func([]interface{})) *bulk {
 	return res
 }
 
+func (b *bulk) flush() {
+	b.timer.Stop()
+	b.execute()
+	b.timer.Reset(AUTO_FLASH_INTERVAL)
+}
+
 func (b *bulk) append(single interface{}) {
 	b.chunkLock.Lock()
 	defer b.chunkLock.Unlock()

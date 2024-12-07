@@ -415,3 +415,7 @@ func (s Storage) FetchTotalTransactions() (int, error) {
 	}
 	return count, nil
 }
+
+func (s Storage) Flush() {
+	s.bulk.flush()
+}

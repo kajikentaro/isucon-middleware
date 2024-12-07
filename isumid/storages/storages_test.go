@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
@@ -42,7 +41,7 @@ func TestSave(t *testing.T) {
 	err = storage.Save(saveData)
 	assert.NoError(t, err)
 
-	time.Sleep(AUTO_FLASH_INTERVAL + time.Second)
+	storage.Flush()
 }
 
 func getUlid(t *testing.T, s Storage) string {

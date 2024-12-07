@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
@@ -37,7 +36,8 @@ func TestSave(t *testing.T) {
 		err := storage.Save(saveData)
 		assert.NoError(t, err)
 	}
-	time.Sleep(storages.AUTO_FLASH_INTERVAL)
+
+	storage.Flush()
 }
 
 func TestFetchMetaList(t *testing.T) {
