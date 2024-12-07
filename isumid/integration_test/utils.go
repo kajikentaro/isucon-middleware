@@ -14,6 +14,7 @@ import (
 
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/services"
+	"github.com/kajikentaro/isucon-middleware/isumid/storages"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,6 +24,9 @@ func FetchAllTransactions(t *testing.T, portNum int) []models.RecordedTransactio
 }
 
 func SearchTransactions(t *testing.T, portNum int, query string) services.SearchResponse {
+	// wait db update
+	time.Sleep(storages.AUTO_FLASH_INTERVAL + 1*time.Second)
+
 	requestUrl := GetUrlList(portNum).Search
 	u, err := url.Parse(requestUrl)
 	assert.NoError(t, err)
