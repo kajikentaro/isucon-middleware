@@ -6,6 +6,7 @@ import { ExecuteButton } from "@/parts/execute-button";
 import { TagBinary } from "@/parts/tag-binary";
 import { useAppSelector } from "@/store";
 import { selectRecordedTransaction } from "@/store/recorded-transaction";
+import { joinClassName } from "@/utils/join-class-name";
 import { MouseEvent, ReactNode } from "react";
 import ProgressIcon from "../parts/progress-icon";
 
@@ -64,7 +65,7 @@ export default function TableRow(props: Props) {
           />
         )}
       </td>
-      <td className={classNameTd}>
+      <td className={joinClassName(classNameTd, "overflow-visible")}>
         <Center>
           <ProgressIcon ulid={item.ulid} />
         </Center>
