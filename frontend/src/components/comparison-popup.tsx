@@ -15,7 +15,10 @@ import {
 import { Header } from "@/types";
 import { shouldBeNever } from "@/utils/assert-never";
 import { BodyType } from "@/utils/get-url";
+import { makeCurlCommand } from "@/utils/make-curl-command";
 import { stringifyHeader } from "@/utils/stringify-header";
+import { useState } from "react";
+import { FaCopy } from "react-icons/fa";
 
 export default function ComparisonPopup() {
   const dispatch = useAppDispatch();
@@ -56,6 +59,7 @@ function ModalContents() {
           contentLength: recordedTransaction.reqLength,
         }}
         url={recordedTransaction.url}
+        method={recordedTransaction.method}
       />
       <span className="mb-4 h-0.5 bg-gray-300 block" />
       <div className="flex justify-center">
@@ -161,11 +165,36 @@ interface TransactionProps {
   contentLength: number;
 }
 
-function Request(props: { transaction: TransactionProps; url: string }) {
+function Request(props: {
+  transaction: TransactionProps;
+  method: string;
+  url: string;
+}) {
   const {
     transaction: { header, isText, body, ulid, contentLength },
+    method,
     url,
   } = props;
+
+  const [wasCopied, setWasCopied] = useState(false);
+
+  const copyAsCurl = () => {
+    if (wasCopied) return;
+
+    const cmd = makeCurlCommand(method, url, header, body);
+    navigator.clipboard.writeText(cmd).then(
+      () => {
+        setWasCopied(true);
+        setTimeout(() => {
+          setWasCopied(false);
+        }, 1500);
+      },
+      () => {
+        alert("Failed to copy cURL command.");
+      }
+    );
+  };
+
   return (
     <div className="p-4 rounded-md">
       <h3 className="text-lg font-semibold my-2"></h3>
@@ -183,6 +212,24 @@ function Request(props: { transaction: TransactionProps; url: string }) {
           className="my-2"
           contentLength={contentLength}
         />
+      )}
+
+      {(isText || contentLength === 0) && (
+        <>
+          <button
+            className="ml-auto mt-4 border-2 py-1 px-4 w-44 rounded-full flex items-center justify-center gap-1 border-blue-500 text-blue-500"
+            onClick={copyAsCurl}
+          >
+            {wasCopied ? (
+              "Copied!"
+            ) : (
+              <>
+                <FaCopy />
+                Copy as cURL
+              </>
+            )}
+          </button>
+        </>
       )}
     </div>
   );
