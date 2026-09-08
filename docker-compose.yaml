@@ -12,8 +12,6 @@ services:
         target: /work
     ports:
       - "8080:8080"
-    profiles:
-      - dev
   dev_front:
     container_name: isucon_middleware_node
     working_dir: /work
@@ -25,5 +23,3 @@ services:
         target: /work
     ports:
       - "3000:3000"
-    profiles:
-      - dev

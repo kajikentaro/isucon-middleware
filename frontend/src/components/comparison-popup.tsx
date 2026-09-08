@@ -14,6 +14,7 @@ import {
 } from "@/store/ui/comparison-popup";
 import { Header } from "@/types";
 import { shouldBeNever } from "@/utils/assert-never";
+import { copyToClipboard } from "@/utils/copy-to-clipboard";
 import { BodyType } from "@/utils/get-url";
 import { makeCurlCommand } from "@/utils/make-curl-command";
 import { stringifyHeader } from "@/utils/stringify-header";
@@ -178,21 +179,20 @@ function Request(props: {
 
   const [wasCopied, setWasCopied] = useState(false);
 
-  const copyAsCurl = () => {
+  const copyAsCurl = async () => {
     if (wasCopied) return;
 
     const cmd = makeCurlCommand(method, url, header, body);
-    navigator.clipboard.writeText(cmd).then(
-      () => {
-        setWasCopied(true);
-        setTimeout(() => {
-          setWasCopied(false);
-        }, 1500);
-      },
-      () => {
-        alert("Failed to copy cURL command.");
-      }
-    );
+    try {
+      await copyToClipboard(cmd);
+      setWasCopied(true);
+      setTimeout(() => {
+        setWasCopied(false);
+      }, 1500);
+    } catch (e) {
+      alert("Failed to copy cURL command.");
+      console.error(e);
+    }
   };
 
   return (
