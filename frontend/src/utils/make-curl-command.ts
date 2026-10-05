@@ -11,9 +11,9 @@ export function makeCurlCommand(method: string, url: string, header: Header, bod
   }
   // Body
   if (body && body.length > 0) {
-    cmd.push("--data-binary", `'${body}'`);
+    cmd.push("-d", `'${body}'`);
   }
- const fullUrl = new URL(url, window.location.origin);
+  const fullUrl = new URL(url, window.location.origin);
   cmd.push(fullUrl.toString());
   return cmd.join(" ");
 }
