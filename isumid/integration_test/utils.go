@@ -97,6 +97,8 @@ type UrlList struct {
 	ReproducesResBody string
 	Search            string
 	Reproduce         string
+	Export            string
+	ExportSize        string
 
 	UrlPrefix string
 	UrlOrigin string
@@ -115,6 +117,8 @@ func GetUrlList(portNum int) UrlList {
 		ReproducesResBody: prefix + "/reproduces-res-body/",
 		Search:            prefix + "/search",
 		Reproduce:         prefix + "/reproduce/",
+		Export:            prefix + "/export",
+		ExportSize:        prefix + "/export-size",
 		UrlPrefix:         prefix,
 		UrlOrigin:         fmt.Sprintf("http://localhost:%d", portNum),
 	}

@@ -37,4 +37,10 @@ export interface TotalTransactions {
   count: number;
 }
 
+export interface ExportSize {
+  count: number;
+  metaBytes: number;
+  textBodyBytes: number;
+}
+
 export type Header = { [key: string]: string[] };

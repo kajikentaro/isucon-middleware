@@ -1,9 +1,12 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 )
@@ -34,63 +37,16 @@ func (s Service) Search(query string, offset, length int) (*SearchResponse, erro
 		return nil, err
 	}
 
-	transactions := []models.RecordedTransaction{}
-	for _, meta := range metaList {
-		transaction := models.RecordedTransaction{Meta: meta}
-
-		if meta.IsReqText {
-			body, err := s.storage.FetchReqBody(meta.Ulid)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "failed to read req body", meta.Ulid)
-				continue
-			}
-			transaction.ReqBody = string(body)
-		}
-		if meta.IsResText {
-			body, err := s.storage.FetchResBody(meta.Ulid)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "failed to read res body", meta.Ulid)
-				continue
-			}
-			transaction.ResBody = string(body)
-		}
-
-		transactions = append(transactions, transaction)
-	}
-
 	return &SearchResponse{
-		Transactions: transactions,
+		Transactions: s.withTextBodies(metaList),
 		TotalHit:     totalHit,
 	}, nil
 }
 
 func (s Service) fetchList(offset, length int) (*SearchResponse, error) {
-	MetaList, err := s.storage.FetchMetaList(offset, length)
+	metaList, err := s.storage.FetchMetaList(offset, length)
 	if err != nil {
 		return nil, err
-	}
-
-	transactions := []models.RecordedTransaction{}
-	for _, meta := range MetaList {
-		transaction := models.RecordedTransaction{Meta: meta}
-		if meta.IsReqText {
-			body, err := s.storage.FetchReqBody(meta.Ulid)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "failed to read req body", meta.Ulid)
-				continue
-			}
-			transaction.ReqBody = string(body)
-		}
-		if meta.IsResText {
-			body, err := s.storage.FetchResBody(meta.Ulid)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "failed to read res body", meta.Ulid)
-				continue
-			}
-			transaction.ResBody = string(body)
-		}
-
-		transactions = append(transactions, transaction)
 	}
 
 	totalHit, err := s.storage.FetchTotalTransactions()
@@ -99,9 +55,35 @@ func (s Service) fetchList(offset, length int) (*SearchResponse, error) {
 	}
 
 	return &SearchResponse{
-		Transactions: transactions,
+		Transactions: s.withTextBodies(metaList),
 		TotalHit:     totalHit,
 	}, nil
+}
+
+// withTextBodies attaches the bodies which are text. A transaction whose body cannot be read is skipped.
+func (s Service) withTextBodies(metaList []models.Meta) []models.RecordedTransaction {
+	transactions := []models.RecordedTransaction{}
+	for _, meta := range metaList {
+		transaction := models.RecordedTransaction{Meta: meta}
+		if meta.IsReqText {
+			body, err := s.storage.FetchReqBody(meta.Ulid)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to read req body", meta.Ulid)
+				continue
+			}
+			transaction.ReqBody = string(body)
+		}
+		if meta.IsResText {
+			body, err := s.storage.FetchResBody(meta.Ulid)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to read res body", meta.Ulid)
+				continue
+			}
+			transaction.ResBody = string(body)
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions
 }
 
 func (s Service) FetchReqBody(ulid string) (models.FetchBodyResponse, error) {
@@ -181,4 +163,42 @@ func (s Service) FetchTotalTransactions() (models.FetchTotalTransactionsResponse
 		Count: count,
 	}
 	return res, nil
+}
+
+// ExportedFile is a temporary SQLite file created by Export. Close removes it.
+type ExportedFile struct {
+	*os.File
+	dir string
+}
+
+func (f *ExportedFile) Close() error {
+	return errors.Join(f.File.Close(), os.RemoveAll(f.dir))
+}
+
+// Export writes the recorded data to a temporary SQLite file for analysis, and returns it opened.
+// The caller must Close it to remove the file.
+func (s Service) Export(maxMetaBytes, maxBodyBytes int64) (*ExportedFile, error) {
+	dir, err := os.MkdirTemp("", "isumid-export-")
+	if err != nil {
+		return nil, err
+	}
+
+	// the file name is also used as the name of the download, e.g. isumid-20240101-123456.sqlite
+	name := fmt.Sprintf("isumid-%s.sqlite", time.Now().Format("20060102-150405"))
+	dst := filepath.Join(dir, name)
+	if err := s.storage.Export(dst, maxMetaBytes, maxBodyBytes); err != nil {
+		os.RemoveAll(dir)
+		return nil, err
+	}
+
+	file, err := os.Open(dst)
+	if err != nil {
+		os.RemoveAll(dir)
+		return nil, err
+	}
+	return &ExportedFile{File: file, dir: dir}, nil
+}
+
+func (s Service) ExportSize() (models.ExportSize, error) {
+	return s.storage.ExportSize()
 }

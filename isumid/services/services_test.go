@@ -1,6 +1,10 @@
 package services
 
 import (
+	"errors"
+	"io"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
@@ -88,4 +92,51 @@ var mockMeta = models.Meta{
 	Ulid:       "sample-ulid",
 	ReqLength:  17,
 	ResLength:  18,
+}
+
+func TestExport(t *testing.T) {
+	t.Run("Should return the exported file and remove it on Close", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		var dst string
+		mockStorage := mock_storage.NewMockStorageInterface(ctrl)
+		mockStorage.EXPECT().Export(gomock.Any(), int64(10), int64(20)).DoAndReturn(
+			func(path string, _, _ int64) error {
+				dst = path
+				return os.WriteFile(path, []byte("exported"), 0666)
+			})
+
+		service := New(mockStorage)
+		file, err := service.Export(10, 20)
+		assert.NoError(t, err)
+
+		assert.Regexp(t, `^isumid-\d{8}-\d{6}\.sqlite$`, filepath.Base(file.Name()))
+
+		data, err := io.ReadAll(file)
+		assert.NoError(t, err)
+		assert.Equal(t, "exported", string(data))
+
+		assert.NoError(t, file.Close())
+		assert.NoDirExists(t, filepath.Dir(dst))
+	})
+
+	t.Run("Should remove the temporary directory on error", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		var dst string
+		mockStorage := mock_storage.NewMockStorageInterface(ctrl)
+		mockStorage.EXPECT().Export(gomock.Any(), int64(10), int64(20)).DoAndReturn(
+			func(path string, _, _ int64) error {
+				dst = path
+				return errors.New("failed")
+			})
+
+		service := New(mockStorage)
+		file, err := service.Export(10, 20)
+		assert.Error(t, err)
+		assert.Nil(t, file)
+		assert.NoDirExists(t, filepath.Dir(dst))
+	})
 }

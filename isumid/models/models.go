@@ -57,6 +57,12 @@ type ReproducerResponse struct {
 	ActualResLength  int                 `json:"actualResLength"`
 }
 
+type ExportSize struct {
+	Count         int64 `json:"count" db:"count"`
+	MetaBytes     int64 `json:"metaBytes" db:"metaBytes"`
+	TextBodyBytes int64 `json:"textBodyBytes" db:"textBodyBytes"`
+}
+
 type IsRecordingResponse struct {
 	IsRecording bool `json:"isRecording"`
 }

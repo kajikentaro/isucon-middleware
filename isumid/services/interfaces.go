@@ -4,6 +4,8 @@ import "github.com/kajikentaro/isucon-middleware/isumid/models"
 
 type StorageInterface interface {
 	Close() error
+	Export(dst string, maxMetaBytes, maxBodyBytes int64) error
+	ExportSize() (models.ExportSize, error)
 	FetchMeta(ulid string) (models.Meta, error)
 	FetchMetaList(offset int, length int) ([]models.Meta, error)
 	FetchReproducedBody(ulid string) ([]byte, error)

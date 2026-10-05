@@ -68,6 +68,35 @@ func (mr *MockStorageInterfaceMockRecorder) CreateDir() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDir", reflect.TypeOf((*MockStorageInterface)(nil).CreateDir))
 }
 
+// Export mocks base method.
+func (m *MockStorageInterface) Export(dst string, maxMetaBytes, maxBodyBytes int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Export", dst, maxMetaBytes, maxBodyBytes)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Export indicates an expected call of Export.
+func (mr *MockStorageInterfaceMockRecorder) Export(dst, maxMetaBytes, maxBodyBytes any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Export", reflect.TypeOf((*MockStorageInterface)(nil).Export), dst, maxMetaBytes, maxBodyBytes)
+}
+
+// ExportSize mocks base method.
+func (m *MockStorageInterface) ExportSize() (models.ExportSize, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExportSize")
+	ret0, _ := ret[0].(models.ExportSize)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExportSize indicates an expected call of ExportSize.
+func (mr *MockStorageInterfaceMockRecorder) ExportSize() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExportSize", reflect.TypeOf((*MockStorageInterface)(nil).ExportSize))
+}
+
 // FetchMeta mocks base method.
 func (m *MockStorageInterface) FetchMeta(ulid string) (models.Meta, error) {
 	m.ctrl.T.Helper()

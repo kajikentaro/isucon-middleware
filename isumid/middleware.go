@@ -41,6 +41,8 @@ func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 	handle("/remove-all", http.HandlerFunc(rec.handler.RemoveAll))
 	handle("/reproduced-res-body/", http.HandlerFunc(rec.handler.FetchReproducedResBody))
 	handle("/search", http.HandlerFunc(rec.handler.Search))
+	handle("/export", http.HandlerFunc(rec.handler.Export))
+	handle("/export-size", http.HandlerFunc(rec.handler.ExportSize))
 	handle("/reproduce/", rec.middleware.Reproducer(next))
 	handle("/", rec.handler.Frontend())
 	mux.Handle("/", rec.middleware.Recorder(next))

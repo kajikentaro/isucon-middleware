@@ -170,6 +170,40 @@ FROM metadata
 WHERE method = 'GET' AND path = '/message';
 ```
 
+### Export
+
+The `Export` button of the Web UI downloads the recorded data as a single SQLite file, with the bodies embedded, e.g. to let an AI analyze it. The same file is returned by `GET /isumid/export?maxMetaMB=100&maxBodyMB=100`. It is sent compressed with gzip (`Content-Encoding: gzip`) if the client accepts it, as browsers do; the saved file is a plain SQLite file. With `curl`, add `--compressed`: `curl --compressed -OJ 'http://localhost:8080/isumid/export'`.
+
+To keep the file small, both the metadata and the bodies are limited (default: 100 MB each):
+
+- `maxMetaMB`: rows are exported from the oldest until their estimated size reaches the limit. Newer rows are not exported, so the exported file may cover only the first part of a benchmark. The dialog shows the size of the whole recorded data to choose the limits (also available at `GET /isumid/export-size`).
+- `maxBodyMB`: text bodies of the exported rows are embedded from the oldest until their total size reaches the limit. It stops at the first row that does not fit, so all the bodies are embedded up to a certain time. Bodies compressed with gzip (`Content-Encoding: gzip`) are decompressed and counted by the decompressed size. The total of text bodies shown in the dialog counts them by the compressed size, so the actual size is larger.
+- The limits are estimates of the content. The file is larger than their sum, because of the columns and indexes below and the overhead of SQLite (about 2x in a test).
+
+The exported file has the `metadata` table with these columns in addition to the columns above:
+
+| Column | Description |
+| --- | --- |
+| `reqBody`, `resBody` | The body as TEXT. A body compressed with gzip (`Content-Encoding: gzip`) is stored decompressed, while `reqHeader` / `resHeader` still have `Content-Encoding: gzip` and `reqLength` / `resLength` are the compressed size (use `length(resBody)` for the decompressed size). `''` if the body is empty. NULL if not embedded: a binary body (images, bodies compressed with other than gzip, invalid UTF-8) or after the limit. Its size is still in `reqLength` / `resLength`. |
+| `cookie` | `Cookie` request header (multiple headers are joined with `; `). NULL if absent. |
+| `setCookie` | `Set-Cookie` response header (multiple headers are joined with a newline). NULL if absent. |
+| `reqContentType`, `resContentType`, `resContentEncoding` | `Content-Type` request header, `Content-Type` / `Content-Encoding` response header. NULL if absent. |
+
+It also has indexes on `ulid` (unique), `(path, statusCode)`, `startedAtUs`, `(cookie, startedAtUs)` and `setCookie`. The original `isumid.sqlite` is not changed.
+
+Examples on an exported file:
+
+```sql
+-- responses of GET /message
+SELECT url, resBody FROM metadata WHERE method = 'GET' AND path = '/message' AND resBody IS NOT NULL LIMIT 5;
+
+-- requests of each user, in order
+SELECT cookie, startedAtUs, method, url, statusCode FROM metadata WHERE cookie IS NOT NULL ORDER BY cookie, startedAtUs;
+
+-- until when the bodies are embedded
+SELECT MAX(startedAtUs) FROM metadata WHERE resBody IS NOT NULL AND resLength > 0;
+```
+
 ## Develop Isucon Middleware
 
 ### Directory structure

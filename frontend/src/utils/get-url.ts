@@ -39,3 +39,11 @@ export function getRemoveAllURL() {
 export function getRemoveURL(ulid: string) {
   return `${BASE}remove/${ulid}`;
 }
+
+export function getExportURL(maxMetaMB: number, maxBodyMB: number) {
+  return `${BASE}export?maxMetaMB=${maxMetaMB}&maxBodyMB=${maxBodyMB}`;
+}
+
+export function getExportSizeURL() {
+  return `${BASE}export-size`;
+}

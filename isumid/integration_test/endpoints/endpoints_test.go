@@ -2,6 +2,7 @@ package test_e2e_endpoints
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -242,4 +243,76 @@ func TestSearchWithFilter(t *testing.T) {
 	actual := utils.SearchTransactions(t, PORT_NUMBER, "/ABC")
 	assert.Equal(t, 1, actual.TotalHit)
 	assert.Equal(t, "/ABC", actual.Transactions[0].Meta.Url)
+}
+
+func TestExport(t *testing.T) {
+	TestRecord(t)
+	total := utils.SearchTransactions(t, PORT_NUMBER, "").TotalHit
+
+	{
+		res, err := http.Get(URL_LIST.ExportSize)
+		assert.NoError(t, err)
+		defer res.Body.Close()
+		assert.Equal(t, 200, res.StatusCode)
+
+		var size models.ExportSize
+		assert.NoError(t, json.NewDecoder(res.Body).Decode(&size))
+		assert.Equal(t, int64(total), size.Count)
+	}
+
+	{
+		res, err := http.Get(URL_LIST.Export + "?maxMetaMB=1&maxBodyMB=1")
+		assert.NoError(t, err)
+		defer res.Body.Close()
+		assert.Equal(t, 200, res.StatusCode)
+		assert.Equal(t, "application/vnd.sqlite3", res.Header.Get("Content-Type"))
+		assert.Regexp(t, `^attachment; filename="isumid-\d{8}-\d{6}\.sqlite"$`, res.Header.Get("Content-Disposition"))
+
+		body, err := io.ReadAll(res.Body)
+		assert.NoError(t, err)
+		assert.True(t, bytes.HasPrefix(body, []byte("SQLite format 3\x00")))
+	}
+
+	// compressed with gzip if the client accepts it
+	{
+		req, err := http.NewRequest("GET", URL_LIST.Export, nil)
+		assert.NoError(t, err)
+		// setting it explicitly disables the transparent decompression of the Go client
+		req.Header.Set("Accept-Encoding", "gzip")
+		res, err := http.DefaultClient.Do(req)
+		assert.NoError(t, err)
+		defer res.Body.Close()
+		assert.Equal(t, 200, res.StatusCode)
+		assert.Equal(t, "gzip", res.Header.Get("Content-Encoding"))
+
+		gz, err := gzip.NewReader(res.Body)
+		assert.NoError(t, err)
+		body, err := io.ReadAll(gz)
+		assert.NoError(t, err)
+		assert.True(t, bytes.HasPrefix(body, []byte("SQLite format 3\x00")))
+	}
+
+	// not compressed otherwise, with Content-Length
+	{
+		req, err := http.NewRequest("GET", URL_LIST.Export, nil)
+		assert.NoError(t, err)
+		req.Header.Set("Accept-Encoding", "identity")
+		res, err := http.DefaultClient.Do(req)
+		assert.NoError(t, err)
+		defer res.Body.Close()
+		assert.Equal(t, 200, res.StatusCode)
+		assert.Empty(t, res.Header.Get("Content-Encoding"))
+
+		body, err := io.ReadAll(res.Body)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(len(body)), res.ContentLength)
+		assert.True(t, bytes.HasPrefix(body, []byte("SQLite format 3\x00")))
+	}
+
+	for _, query := range []string{"?maxBodyMB=-1", "?maxMetaMB=abc"} {
+		res, err := http.Get(URL_LIST.Export + query)
+		assert.NoError(t, err)
+		res.Body.Close()
+		assert.Equal(t, 400, res.StatusCode, query)
+	}
 }
