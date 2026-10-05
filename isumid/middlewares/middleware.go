@@ -84,6 +84,8 @@ func (s *Middleware) Recorder(next http.Handler) http.Handler {
 			return
 		}
 
+		startedAt := time.Now()
+
 		// prepare to read request body
 		var reqBodySniffer bytes.Buffer
 		newBody := ReadCloser{
@@ -99,6 +101,7 @@ func (s *Middleware) Recorder(next http.Handler) http.Handler {
 
 		// go to original handler
 		next.ServeHTTP(newW, r)
+		duration := time.Since(startedAt)
 
 		reqBody, err := io.ReadAll(&reqBodySniffer)
 		if err != nil {
@@ -115,11 +118,14 @@ func (s *Middleware) Recorder(next http.Handler) http.Handler {
 		saveData := models.RecordedDataInput{
 			Method:     r.Method,
 			Url:        r.URL.String(),
+			Path:       r.URL.Path,
 			ReqHeader:  r.Header,
 			ReqBody:    reqBody,
 			StatusCode: statusCode,
 			ResHeader:  newW.Header(),
 			ResBody:    resBody,
+			StartedAt:  startedAt,
+			Duration:   duration,
 		}
 		err = s.storage.Save(saveData)
 		if err != nil {
@@ -154,11 +160,11 @@ func (s *Middleware) Reproducer(next http.Handler) http.Handler {
 
 		// prepqre request
 		newRequest, err := http.NewRequest(savedMeta.Method, savedMeta.Url, bytes.NewReader(savedRequestBody))
-		newRequest.Header = savedMeta.ReqHeader
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to prepare request: %#v", err), http.StatusBadRequest)
 			return
 		}
+		newRequest.Header = savedMeta.ReqHeader
 
 		// prepare mocked ResponseWriter
 		statusCode := 200

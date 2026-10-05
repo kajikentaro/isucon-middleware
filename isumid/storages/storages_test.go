@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
@@ -30,6 +31,9 @@ func TestSave(t *testing.T) {
 		StatusCode: 200,
 		ResHeader:  map[string][]string{"Content-Type": {"text/plain"}},
 		ResBody:    []byte("Test Response Body"),
+		Path:       "/test-url",
+		StartedAt:  time.UnixMicro(1700000000123456),
+		Duration:   1500 * time.Microsecond,
 	}
 
 	// prepare storage
@@ -71,6 +75,10 @@ func TestFetchMeta(t *testing.T) {
 		Ulid:       ulid,
 		ReqLength:  17,
 		ResLength:  18,
+
+		Path:        "/test-url",
+		StartedAtUs: 1700000000123456,
+		DurationUs:  1500,
 	}
 	assert.Exactly(t, expected, actual)
 }
@@ -97,6 +105,10 @@ func TestFetchMetaList(t *testing.T) {
 		Ulid:       "",
 		ReqLength:  17,
 		ResLength:  18,
+
+		Path:        "/test-url",
+		StartedAtUs: 1700000000123456,
+		DurationUs:  1500,
 	}}
 	assert.Exactly(t, expected, actual)
 }

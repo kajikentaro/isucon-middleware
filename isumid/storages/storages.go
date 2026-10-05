@@ -1,8 +1,9 @@
 package storages
 
 import (
+	"crypto/rand"
+	"encoding/json"
 	"fmt"
-	"math/rand"
 	"mime"
 	"net/http"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"github.com/kajikentaro/isucon-middleware/isumid/models"
 	"github.com/kajikentaro/isucon-middleware/isumid/settings"
 	"github.com/oklog/ulid"
-	"github.com/vmihailenco/msgpack/v5"
 	_ "modernc.org/sqlite"
 )
 
@@ -66,14 +66,17 @@ func initDB(db *sqlx.DB) error {
 		CREATE TABLE IF NOT EXISTS metadata (
 			method TEXT,
 			url TEXT,
-			reqHeader BLOB,
+			reqHeader TEXT,
 			statusCode INTEGER,
-			resHeader BLOB,
+			resHeader TEXT,
 			isReqText BOOLEAN,
 			isResText BOOLEAN,
 			ulid TEXT PRIMARY KEY,
 			reqLength INTEGER,
-			resLength INTEGER
+			resLength INTEGER,
+			path TEXT,
+			startedAtUs INTEGER,
+			durationUs INTEGER
 		);
 	`
 	if _, err := db.Exec(query); err != nil {
@@ -84,8 +87,8 @@ func initDB(db *sqlx.DB) error {
 
 func insertMetaBulk(db *sqlx.DB, serializedMetaList []interface{}) {
 	query := `
-		INSERT INTO metadata (method, url, reqHeader, statusCode, resHeader, isReqText, isResText, ulid, reqLength, resLength)
-		VALUES (:method, :url, :reqHeader, :statusCode, :resHeader, :isReqText, :isResText, :ulid, :reqLength, :resLength);
+		INSERT INTO metadata (method, url, reqHeader, statusCode, resHeader, isReqText, isResText, ulid, reqLength, resLength, path, startedAtUs, durationUs)
+		VALUES (:method, :url, :reqHeader, :statusCode, :resHeader, :isReqText, :isResText, :ulid, :reqLength, :resLength, :path, :startedAtUs, :durationUs);
 	`
 	if _, err := db.NamedExec(query, serializedMetaList); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to save meta data: %s\n", err)
@@ -121,36 +124,50 @@ func IsText(header map[string][]string, body []byte) bool {
 	return false
 }
 
+// genUlidStr returns a new ULID of the current time.
+// The random part is read from crypto/rand, which is safe for concurrent use,
+// so concurrent calls do not return the same ULID.
 func genUlidStr() string {
-	t := time.Now()
-	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)
-	id := ulid.MustNew(ulid.Timestamp(t), entropy)
-	return id.String()
+	return ulid.MustNew(ulid.Now(), rand.Reader).String()
 }
 
-func serializeMap(header map[string][]string) ([]byte, error) {
-	return msgpack.Marshal(header)
+func unixMicro(t time.Time) int64 {
+	if t.IsZero() {
+		return 0
+	}
+	return t.UnixMicro()
 }
 
-func deserializeMap(data []byte) (map[string][]string, error) {
+func serializeMap(header map[string][]string) (string, error) {
+	data, err := json.Marshal(header)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func deserializeMap(data string) (map[string][]string, error) {
 	var header map[string][]string
-	if err := msgpack.Unmarshal(data, &header); err != nil {
+	if err := json.Unmarshal([]byte(data), &header); err != nil {
 		return nil, err
 	}
 	return header, nil
 }
 
 type serializedMeta struct {
-	Method     string `db:"method"`
-	Url        string `db:"url"`
-	ReqHeader  []byte `db:"reqHeader"`
-	StatusCode int    `db:"statusCode"`
-	ResHeader  []byte `db:"resHeader"`
-	IsReqText  bool   `db:"isReqText"`
-	IsResText  bool   `db:"isResText"`
-	ReqLength  int    `db:"reqLength"`
-	ResLength  int    `db:"resLength"`
-	Ulid       string `db:"ulid"`
+	Method      string `db:"method"`
+	Url         string `db:"url"`
+	ReqHeader   string `db:"reqHeader"`
+	StatusCode  int    `db:"statusCode"`
+	ResHeader   string `db:"resHeader"`
+	IsReqText   bool   `db:"isReqText"`
+	IsResText   bool   `db:"isResText"`
+	ReqLength   int    `db:"reqLength"`
+	ResLength   int    `db:"resLength"`
+	Ulid        string `db:"ulid"`
+	Path        string `db:"path"`
+	StartedAtUs int64  `db:"startedAtUs"`
+	DurationUs  int64  `db:"durationUs"`
 }
 
 func serializeMeta(meta models.Meta) (serializedMeta, error) {
@@ -163,16 +180,19 @@ func serializeMeta(meta models.Meta) (serializedMeta, error) {
 		return serializedMeta{}, err
 	}
 	return serializedMeta{
-		Method:     meta.Method,
-		Url:        meta.Url,
-		ReqHeader:  reqHeader,
-		StatusCode: meta.StatusCode,
-		ResHeader:  resHeader,
-		IsReqText:  meta.IsReqText,
-		IsResText:  meta.IsResText,
-		ReqLength:  meta.ReqLength,
-		ResLength:  meta.ResLength,
-		Ulid:       meta.Ulid,
+		Method:      meta.Method,
+		Url:         meta.Url,
+		ReqHeader:   reqHeader,
+		StatusCode:  meta.StatusCode,
+		ResHeader:   resHeader,
+		IsReqText:   meta.IsReqText,
+		IsResText:   meta.IsResText,
+		ReqLength:   meta.ReqLength,
+		ResLength:   meta.ResLength,
+		Ulid:        meta.Ulid,
+		Path:        meta.Path,
+		StartedAtUs: meta.StartedAtUs,
+		DurationUs:  meta.DurationUs,
 	}, nil
 }
 
@@ -186,16 +206,19 @@ func deserializeMeta(data serializedMeta) (models.Meta, error) {
 		return models.Meta{}, err
 	}
 	return models.Meta{
-		Method:     data.Method,
-		Url:        data.Url,
-		ReqHeader:  reqHeader,
-		StatusCode: data.StatusCode,
-		ResHeader:  resHeader,
-		IsReqText:  data.IsReqText,
-		IsResText:  data.IsResText,
-		Ulid:       data.Ulid,
-		ReqLength:  data.ReqLength,
-		ResLength:  data.ResLength,
+		Method:      data.Method,
+		Url:         data.Url,
+		ReqHeader:   reqHeader,
+		StatusCode:  data.StatusCode,
+		ResHeader:   resHeader,
+		IsReqText:   data.IsReqText,
+		IsResText:   data.IsResText,
+		Ulid:        data.Ulid,
+		ReqLength:   data.ReqLength,
+		ResLength:   data.ResLength,
+		Path:        data.Path,
+		StartedAtUs: data.StartedAtUs,
+		DurationUs:  data.DurationUs,
 	}, nil
 }
 
@@ -206,16 +229,19 @@ func (s Storage) Save(data models.RecordedDataInput) error {
 	// save metadata
 	{
 		meta := models.Meta{
-			Method:     data.Method,
-			Url:        data.Url,
-			ReqHeader:  data.ReqHeader,
-			StatusCode: data.StatusCode,
-			ResHeader:  data.ResHeader,
-			IsReqText:  IsText(data.ReqHeader, data.ReqBody),
-			IsResText:  IsText(data.ResHeader, data.ResBody),
-			Ulid:       ulidStr,
-			ReqLength:  len(data.ReqBody),
-			ResLength:  len(data.ResBody),
+			Method:      data.Method,
+			Url:         data.Url,
+			ReqHeader:   data.ReqHeader,
+			StatusCode:  data.StatusCode,
+			ResHeader:   data.ResHeader,
+			IsReqText:   IsText(data.ReqHeader, data.ReqBody),
+			IsResText:   IsText(data.ResHeader, data.ResBody),
+			Ulid:        ulidStr,
+			ReqLength:   len(data.ReqBody),
+			ResLength:   len(data.ResBody),
+			Path:        data.Path,
+			StartedAtUs: unixMicro(data.StartedAt),
+			DurationUs:  data.Duration.Microseconds(),
 		}
 
 		serialized, err := serializeMeta(meta)
@@ -340,7 +366,7 @@ func (s Storage) FetchReproducedHeader(ulid string) (map[string][]string, error)
 	}
 
 	var header map[string][]string
-	err = msgpack.Unmarshal(data, &header)
+	err = json.Unmarshal(data, &header)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +377,7 @@ func (s Storage) FetchReproducedHeader(ulid string) (map[string][]string, error)
 func (s Storage) SaveReproduced(ulid string, body []byte, header map[string][]string) error {
 	{
 		path := filepath.Join(s.outputDir, ulid+".reproduced.header")
-		data, err := msgpack.Marshal(header)
+		data, err := json.Marshal(header)
 		if err != nil {
 			return err
 		}

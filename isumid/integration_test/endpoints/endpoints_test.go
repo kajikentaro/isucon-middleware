@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/kajikentaro/isucon-middleware/isumid"
@@ -36,6 +37,7 @@ func TestMain(m *testing.M) {
 	mux.Handle("/", rec.Middleware(http.HandlerFunc(utils.SampleHandler)))
 	srv := &http.Server{Addr: HTTP_ADDRESS, Handler: mux}
 	go utils.StartServer(srv)
+	time.Sleep(time.Second)
 	defer utils.StopServer(srv)
 
 	m.Run()
@@ -66,12 +68,19 @@ func TestSearchWithoutFilter(t *testing.T) {
 	actual := utils.SearchTransactions(t, PORT_NUMBER, "")
 	actual.Transactions[0].Ulid = ""
 
+	// timing depends on the run
+	meta := &actual.Transactions[0].Meta
+	assert.InDelta(t, time.Now().UnixMicro(), meta.StartedAtUs, float64(time.Minute.Microseconds()))
+	assert.GreaterOrEqual(t, meta.DurationUs, int64(0))
+	meta.StartedAtUs, meta.DurationUs = 0, 0
+
 	expected := services.SearchResponse{
 		Transactions: []models.RecordedTransaction{{
 			ResBody: "Hello World Response",
 			ReqBody: "Hello World",
 			Meta: models.Meta{
-				Url: "/",
+				Url:  "/",
+				Path: "/",
 				ReqHeader: map[string][]string{
 					"Accept-Encoding": {"gzip"},
 					"Content-Length":  {"11"},
@@ -97,7 +106,7 @@ func TestSearchWithoutFilter(t *testing.T) {
 }
 
 func fetchFirstUlid(t *testing.T) string {
-	return utils.FetchAllTransactions(t, 8081)[0].Ulid
+	return utils.FetchAllTransactions(t, PORT_NUMBER)[0].Ulid
 }
 
 func TestFetchResBody(t *testing.T) {

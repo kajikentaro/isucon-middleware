@@ -8,7 +8,6 @@ require (
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/oklog/ulid v1.3.1
 	github.com/stretchr/testify v1.9.0
-	github.com/vmihailenco/msgpack/v5 v5.4.1
 	go.uber.org/mock v0.5.0
 	modernc.org/sqlite v1.34.2
 )
@@ -26,7 +25,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
