@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"mime"
+	"io/fs"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -171,29 +170,20 @@ func (h Handler) FetchTotalTransactions(w http.ResponseWriter, r *http.Request) 
 //go:embed front-built/*
 var assets embed.FS
 
-func (h Handler) Frontend(w http.ResponseWriter, r *http.Request) {
-	filePath, errorMessage := getFilePathFromUrlPath(r.URL.Path)
-	if errorMessage != "" {
-		http.Error(w, errorMessage, http.StatusBadRequest)
-		return
-	}
-
-	data, err := assets.ReadFile("front-built/" + filePath)
+// Frontend serves the built web UI. The UI refers to its assets and the APIs with relative paths,
+// so it works under any prefix. Expects a request path with the prefix stripped.
+func (h Handler) Frontend() http.Handler {
+	frontBuilt, err := fs.Sub(assets, "front-built")
 	if err != nil {
-		http.Error(w, "File not found", http.StatusNotFound)
-		return
+		panic(err)
 	}
-
-	extension := filepath.Ext(filePath)
-	if mimeType := mime.TypeByExtension(extension); mimeType != "" {
-		w.Header().Add("Content-Type", mimeType)
-	}
-	fmt.Fprintf(w, "%s", data)
+	return http.FileServer(http.FS(frontBuilt))
 }
 
-// ex) input: /isumid/path_name/12345abcde -> output: 12345abcde
+// Expects a request path with the prefix stripped.
+// ex) input: /path_name/12345abcde -> output: 12345abcde
 func getUlidFromPath(path string) (string, errorMessage string) {
-	const ANS_IDX = 4
+	const ANS_IDX = 3
 	parts := strings.Split(path, "/")
 	if len(parts) > ANS_IDX {
 		err := fmt.Sprintf("invalid URL: %s, should be %s/[ulid]", path, strings.Join(parts[:ANS_IDX-1], "/"))
@@ -206,19 +196,5 @@ func getUlidFromPath(path string) (string, errorMessage string) {
 		return parts[ANS_IDX-1], ""
 	}
 	err := fmt.Sprintf("invalid URL: %s, should be %s/[ulid]", path, strings.Join(parts[:ANS_IDX-1], "/"))
-	return "", err
-}
-
-// ex) input: /isumid/path_name/ab/cd/ef -> output: ab/cd/ef
-func getFilePathFromUrlPath(path string) (string, errorMessage string) {
-	const ANS_IDX = 3
-	parts := strings.Split(path, "/")
-	if len(parts) < ANS_IDX {
-		return "", fmt.Sprintf("invalid URL: %s", path)
-	}
-	if len(parts) >= ANS_IDX && parts[ANS_IDX-1] != "" {
-		return strings.Join(parts[ANS_IDX-1:], "/"), ""
-	}
-	err := fmt.Sprintf("invalid URL: %s, should be %s/[file path]", path, strings.Join(parts[:ANS_IDX-1], "/"))
 	return "", err
 }

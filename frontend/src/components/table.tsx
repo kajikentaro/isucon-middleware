@@ -1,4 +1,3 @@
-"use client";
 import TableRow from "@/components/table-row";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectRecordedTransactionUlids } from "@/store/recorded-transaction";

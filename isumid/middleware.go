@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kajikentaro/isucon-middleware/isumid/handlers"
 	"github.com/kajikentaro/isucon-middleware/isumid/middlewares"
@@ -20,27 +21,35 @@ type Recorder struct {
 	// Middleware func(http.Handler) http.Handler
 	handler    handlers.Handler
 	middleware middlewares.Middleware
+	prefix     string
 }
 
 func (rec *Recorder) Middleware(next http.Handler) http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/isumid/start-recording", rec.middleware.StartRecording)
-	mux.HandleFunc("/isumid/stop-recording", rec.middleware.StopRecording)
-	mux.HandleFunc("/isumid/is-recording", rec.middleware.IsRecording)
-	mux.HandleFunc("/isumid/req-body/", rec.handler.FetchReqBody)
-	mux.HandleFunc("/isumid/res-body/", rec.handler.FetchResBody)
-	mux.HandleFunc("/isumid/remove/", rec.handler.Remove)
-	mux.HandleFunc("/isumid/remove-all", rec.handler.RemoveAll)
-	mux.HandleFunc("/isumid/reproduced-res-body/", rec.handler.FetchReproducedResBody)
-	mux.HandleFunc("/isumid/search", rec.handler.Search)
-	mux.Handle("/isumid/reproduce/", rec.middleware.Reproducer(next))
-	mux.HandleFunc("/isumid/", rec.handler.Frontend)
+	// Routes are registered with the prefix so that ServeMux's trailing-slash redirects
+	// (e.g. "/isumid" -> "/isumid/", "/isumid/req-body" -> "/isumid/req-body/") keep the prefix.
+	// The handlers receive the path with the prefix stripped.
+	handle := func(pattern string, handler http.Handler) {
+		mux.Handle(rec.prefix+pattern, http.StripPrefix(rec.prefix, handler))
+	}
+	handle("/start-recording", http.HandlerFunc(rec.middleware.StartRecording))
+	handle("/stop-recording", http.HandlerFunc(rec.middleware.StopRecording))
+	handle("/is-recording", http.HandlerFunc(rec.middleware.IsRecording))
+	handle("/req-body/", http.HandlerFunc(rec.handler.FetchReqBody))
+	handle("/res-body/", http.HandlerFunc(rec.handler.FetchResBody))
+	handle("/remove/", http.HandlerFunc(rec.handler.Remove))
+	handle("/remove-all", http.HandlerFunc(rec.handler.RemoveAll))
+	handle("/reproduced-res-body/", http.HandlerFunc(rec.handler.FetchReproducedResBody))
+	handle("/search", http.HandlerFunc(rec.handler.Search))
+	handle("/reproduce/", rec.middleware.Reproducer(next))
+	handle("/", rec.handler.Frontend())
 	mux.Handle("/", rec.middleware.Recorder(next))
 	return mux
 }
 
 func New(options *Setting) *Recorder {
 	defaultSetting := Setting{
+		Prefix:        "/isumid",
 		OutputDir:     filepath.Join(os.TempDir(), "isumid"),
 		RecordOnStart: false,
 		AutoStop:      nil,
@@ -50,6 +59,12 @@ func New(options *Setting) *Recorder {
 	if options == nil {
 		options = &defaultSetting
 	} else {
+		if options.Prefix == "" {
+			options.Prefix = defaultSetting.Prefix
+		}
+		if !strings.HasPrefix(options.Prefix, "/") {
+			options.Prefix = "/" + options.Prefix
+		}
 		if options.OutputDir == "" {
 			options.OutputDir = defaultSetting.OutputDir
 		}
@@ -66,5 +81,5 @@ func New(options *Setting) *Recorder {
 
 	mid := middlewares.New(storage, options)
 
-	return &Recorder{handler: han, middleware: mid}
+	return &Recorder{handler: han, middleware: mid, prefix: options.Prefix}
 }

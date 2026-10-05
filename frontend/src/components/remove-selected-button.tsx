@@ -1,4 +1,3 @@
-"use client";
 import { fetchTransactions } from "@/actions/fetch-transactions";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectSelectedUlids } from "@/store/ui/selected-ulids";

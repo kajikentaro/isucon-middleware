@@ -1,9 +1,7 @@
-import { fetchTransactions } from "@/actions/fetch-transactions";
 import { usePageParams } from "@/hooks/use-page-params";
 import Modal from "@/parts/modal";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { closeFilterPopup, selectFilterPopup } from "@/store/ui/filter-popup";
-import { useRouter } from "next/navigation";
 import { ChangeEventHandler, useState } from "react";
 
 export default function FilterPopup() {
@@ -24,7 +22,6 @@ export default function FilterPopup() {
 
 function ModalContents() {
   const dispatch = useAppDispatch();
-  const router = useRouter();
 
   const { query: initialFilterText } = usePageParams();
   const [filterText, setFilterText] = useState(initialFilterText);
@@ -39,9 +36,7 @@ function ModalContents() {
 
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set("query", filterText);
-    router.push(newUrl.toString());
-
-    dispatch(fetchTransactions(undefined, filterText));
+    window.location.href = newUrl.toString();
   };
 
   return (

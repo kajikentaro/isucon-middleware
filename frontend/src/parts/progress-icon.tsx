@@ -1,4 +1,3 @@
-"use client";
 import ThreeDotsAnimation from "@/parts/3-dots-animation";
 import { useAppSelector } from "@/store";
 import {

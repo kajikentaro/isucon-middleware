@@ -131,13 +131,13 @@ func (s *Middleware) Recorder(next http.Handler) http.Handler {
 
 func (s *Middleware) Reproducer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// get ulid from path
+		// get ulid from path (the prefix is already stripped)
 		parts := strings.Split(r.URL.Path, "/")
-		if len(parts) < 4 || parts[3] == "" {
-			http.Error(w, "invalid URL: should be /isumid/reproduce/[ulid]", http.StatusBadRequest)
+		if len(parts) < 3 || parts[2] == "" {
+			http.Error(w, "invalid URL: should be [prefix]/reproduce/[ulid]", http.StatusBadRequest)
 			return
 		}
-		ulid := parts[3]
+		ulid := parts[2]
 
 		// fetch recorded data
 		savedRequestBody, err := s.storage.FetchReqBody(ulid)

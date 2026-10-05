@@ -1,8 +1,5 @@
-"use client";
 import { fetchTransactions } from "@/actions/fetch-transactions";
-import { ENV } from "@/constants";
 import { useAppDispatch } from "@/store";
-import Link from "next/link";
 import { useEffect } from "react";
 import ExecuteCheckedButton from "./execute-checked-button";
 import Pagination from "./pagination";
@@ -22,9 +19,9 @@ export default function Main() {
   return (
     <div className="flex flex-col justify-center items-center">
       <div className="flex w-full justify-between px-4 py-3 mb-2">
-        <Link href={ENV.TOP_PAGE_PATH}>
+        <a href="./">
           <h1 className="text-3xl font-bold">Isucon Middleware</h1>
-        </Link>
+        </a>
         <div className="flex gap-x-5">
           <RemoveSelectedButton />
           <RemoveAllButton />

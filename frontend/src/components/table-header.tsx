@@ -1,4 +1,3 @@
-"use client";
 import { usePageParams } from "@/hooks/use-page-params";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { selectRecordedTransactionUlids } from "@/store/recorded-transaction";

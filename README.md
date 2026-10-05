@@ -51,6 +51,7 @@ The behavior of Isucon Middleware can be customized by passing configuration set
 
 ```go
 	rec := isumid.New(&isumid.Setting{
+		Prefix:        "/isumid",
 		OutputDir:     "/tmp/isumid",
 		RecordOnStart: true,
 		AutoStart: &isumid.AutoSwitch{
@@ -64,6 +65,8 @@ The behavior of Isucon Middleware can be customized by passing configuration set
 	})
 ```
 
+- Prefix  
+  URL prefix to serve the Web UI and APIs. e.g. `"/foo"` serves the Web UI at `/foo/`. Defaults to `/isumid`.
 - AutoStart  
   If `TriggerEndpoint` is accessed, Isucon Middleware starts recording after `AfterSec` seconds have elapsed.
 - AutoStop  
@@ -71,15 +74,15 @@ The behavior of Isucon Middleware can be customized by passing configuration set
 
 ## How to use
 
-After installation, let's access `/isumid/index.html`.
+After installation, let's access `/isumid/` (or `/<Prefix>/` if you set `Prefix`).
 
-Please note that settings of Nginx or other middlewares are configured correctly to accesss the URL start from `/isumid/` prefix.
+Please note that settings of Nginx or other middlewares are configured correctly to accesss the URL start from `/isumid/` (or `/<Prefix>/`) prefix.
 
 ## Develop Isucon Middleware
 
 ### Directory structure
 
 - `/frontend`  
-  Web UI built with Next.js. Please run `make build-front` after updating this directory to copy build file to `/isumid`
+  Web UI built with Vite + React. Please run `make build-front` after updating this directory to copy build file to `/isumid`
 - `/isumid`  
   Isucon Middleware built with Go.

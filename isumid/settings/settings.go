@@ -6,6 +6,8 @@ type AutoSwitch struct {
 }
 
 type Setting struct {
+	// URL prefix to serve the web UI and APIs. Default: "/isumid"
+	Prefix        string
 	OutputDir     string
 	RecordOnStart bool
 	AutoStop      *AutoSwitch

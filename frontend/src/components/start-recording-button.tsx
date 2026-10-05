@@ -1,4 +1,3 @@
-"use client";
 import { useIsRecording } from "@/hooks/use-is-recording";
 import { FaPlay, FaStop } from "react-icons/fa";
 

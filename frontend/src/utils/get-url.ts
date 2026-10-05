@@ -1,9 +1,9 @@
-import { ENV } from "@/constants";
-
-const ENDPOINT_URL = ENV.ENDPOINT_URL;
+// The built UI uses URLs relative to the page, so it works under whatever prefix the Go server is configured with.
+// The dev server calls the Go server on :8080 directly (the APIs send Access-Control-Allow-Origin: *).
+const BASE = import.meta.env.DEV ? "http://localhost:8080/isumid/" : "./";
 
 export function getReproduceUrl(ulid: string) {
-  return `${ENDPOINT_URL}isumid/reproduce/${ulid}`;
+  return `${BASE}reproduce/${ulid}`;
 }
 
 export function getSearchUrl(
@@ -11,36 +11,31 @@ export function getSearchUrl(
   length: number,
   query: string = ""
 ) {
-  return `${ENDPOINT_URL}isumid/search?offset=${offset}&length=${length}&query=${query}`;
+  return `${BASE}search?offset=${offset}&length=${length}&query=${query}`;
 }
 
 export type BodyType = "req-body" | "res-body" | "reproduced-res-body";
 
 export function getBodyPath(type: BodyType, ulid: string) {
-  if (process.env.NODE_ENV === "production") {
-    // we don't need 'isumid' prefix as Next.js automatically add it according to basePath
-    return `/${type}/${ulid}`;
-  }
-
-  return `${ENDPOINT_URL}isumid/${type}/${ulid}`;
+  return `${BASE}${type}/${ulid}`;
 }
 
 export function getIsRecordingURL() {
-  return `${ENDPOINT_URL}isumid/is-recording`;
+  return `${BASE}is-recording`;
 }
 
 export function getStartRecordingURL() {
-  return `${ENDPOINT_URL}isumid/start-recording`;
+  return `${BASE}start-recording`;
 }
 
 export function getStopRecordingURL() {
-  return `${ENDPOINT_URL}isumid/stop-recording`;
+  return `${BASE}stop-recording`;
 }
 
 export function getRemoveAllURL() {
-  return `${ENDPOINT_URL}isumid/remove-all`;
+  return `${BASE}remove-all`;
 }
 
 export function getRemoveURL(ulid: string) {
-  return `${ENDPOINT_URL}isumid/remove/${ulid}`;
+  return `${BASE}remove/${ulid}`;
 }

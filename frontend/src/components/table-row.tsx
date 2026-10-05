@@ -1,4 +1,3 @@
-"use client";
 import { useExecute } from "@/hooks/use-execute";
 import { useOpenPopup } from "@/hooks/use-open-popup";
 import Code from "@/parts/code";

@@ -1,10 +1,8 @@
-import { fetchTransactions } from "@/actions/fetch-transactions";
 import { MAX_ROW_LENGTH } from "@/constants";
 import { usePageParams } from "@/hooks/use-page-params";
-import { useAppDispatch, useAppSelector } from "@/store";
+import { useAppSelector } from "@/store";
 import { selectTotalTransactions } from "@/store/total-transactions";
 import { selectIsFetchingTransactions } from "@/store/ui/is-fetching-transactions";
-import Link from "next/link";
 
 // the number of active buttons before and after the current page
 const ACTIVE_BUTTON_LENGTH = 2;
@@ -14,13 +12,9 @@ export default function Pagination() {
   const totalTransactions = useAppSelector(selectTotalTransactions);
   const maxPageNum = Math.ceil(totalTransactions / MAX_ROW_LENGTH);
   const { page: currentPageNum, query } = usePageParams();
-  const dispatch = useAppDispatch();
 
   const getLinkProps = (pageNum: number) => ({
-    href: {
-      query: { page: pageNum, query },
-    },
-    onClick: () => dispatch(fetchTransactions(pageNum)),
+    href: "?" + new URLSearchParams({ page: String(pageNum), query }),
   });
 
   const shouldShow = (pageNum: number) => {
@@ -45,13 +39,12 @@ export default function Pagination() {
       <ul className="flex items-center gap-3 bg-gray-200 rounded-full px-3">
         {currentPageNum > 1 && (
           <li className="flex">
-            <Link
+            <a
               {...getLinkProps(currentPageNum - 1)}
-              prefetch={false}
               className="font-bold py-2 px-3 rounded-lg"
             >
               &lt;
-            </Link>
+            </a>
           </li>
         )}
 
@@ -80,26 +73,24 @@ export default function Pagination() {
 
           return (
             <li key={pageNum} className="flex">
-              <Link
+              <a
                 {...getLinkProps(pageNum)}
-                prefetch={false}
                 className="font-bold py-2 px-3 rounded-lg"
               >
                 {pageNum}
-              </Link>
+              </a>
             </li>
           );
         })}
 
         {currentPageNum < maxPageNum && (
           <li className="flex">
-            <Link
+            <a
               {...getLinkProps(currentPageNum + 1)}
-              prefetch={false}
               className="font-bold py-2 px-3 rounded-lg"
             >
               &gt;
-            </Link>
+            </a>
           </li>
         )}
       </ul>

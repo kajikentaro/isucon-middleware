@@ -1,5 +1,4 @@
 import { BodyType, getBodyPath } from "@/utils/get-url";
-import Link from "next/link";
 import TagEmpty from "./tag-empty";
 
 interface Props {
@@ -43,17 +42,16 @@ export function TagBinary({
   }
 
   return (
-    <Link
+    <a
       href={getBodyPath(type, ulid)}
       onClick={(e) => {
         e.stopPropagation();
       }}
       className={`inline-flex ${className}`}
-      prefetch={false}
     >
       <span className="bg-green-500 text-white py-1 px-2 text-xs rounded-full block w-fit">
         binary data {contentLength ? normalizeContentLength(contentLength) : ""}
       </span>
-    </Link>
+    </a>
   );
 }

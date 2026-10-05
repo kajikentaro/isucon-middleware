@@ -1,7 +1,3 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-
 interface SearchParams {
   get: (name: string) => string | null;
 }
@@ -22,6 +18,5 @@ export function getPageParams() {
 }
 
 export function usePageParams() {
-  const searchParams = useSearchParams();
-  return common(searchParams);
+  return getPageParams();
 }
